@@ -1,292 +1,18 @@
-// import React, { useState } from 'react';
-// import { ShoppingBag, Search, CreditCard, Truck, ShieldCheck, Lock, CheckCircle } from 'lucide-react';
-// import axios from 'axios';
-// import { URL } from '../url';
-// import { useAuth } from '../context/AuthContext';
-
-// export default function Checkout() {
-//   const [currentStep, setCurrentStep] = useState(1);
-
-//   const cartItems = [
-//     {
-//       id: 1,
-//       name: 'Premium Whey Isolate',
-//       flavor: 'Chocolate',
-//       size: '2.5 lbs',
-//       price: 49.99,
-//       quantity: 2,
-//       image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop'
-//     },
-//     {
-//       id: 2,
-//       name: 'Mass Gainer Pro',
-//       flavor: 'Vanilla',
-//       size: '5 lbs',
-//       price: 89.99,
-//       quantity: 1,
-//       image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=300&h=300&fit=crop'
-//     }
-//   ];
-
-//   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-//   const shipping = 0; // Free shipping
-//   const tax = subtotal * 0.08;
-//   const total = subtotal + shipping + tax;
-
-//   const steps = [
-//     { id: 1, name: 'Shipping', status: currentStep > 1 ? 'complete' : currentStep === 1 ? 'current' : 'upcoming' },
-//     // { id: 2, name: 'Payment', status: currentStep > 2 ? 'complete' : currentStep === 2 ? 'current' : 'upcoming' },
-//     // { id: 3, name: 'Review', status: currentStep === 3 ? 'current' : 'upcoming' }
-//   ];
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       {/* Navigation */}
-//       <nav className="bg-white shadow-sm border-b border-gray-100">
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//           <div className="flex justify-between items-center h-16">
-//             <div className="flex items-center space-x-2">
-//               <div className="bg-sky-500 text-white px-3 py-2 rounded-lg font-bold text-xl">
-//                 HOPG
-//               </div>
-//               <div className="hidden sm:block">
-//                 <span className="text-gray-600 text-sm">Home of Proteins</span>
-//               </div>
-//             </div>
-
-//             <div className="flex items-center space-x-2">
-//               <Lock className="h-4 w-4 text-green-600" />
-//               <span className="text-sm text-gray-600">Secure Checkout</span>
-//             </div>
-//           </div>
-//         </div>
-//       </nav>
-
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-//         {/* Progress Steps */}
-//         <div className="mb-8">
-//           <nav aria-label="Progress">
-//             <ol className="flex items-center justify-center">
-//               {steps.map((step, stepIdx) => (
-//                 <li key={step.name} className={`${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''} relative`}>
-//                   {step.status === 'complete' ? (
-//                     <div className="absolute inset-0 flex items-center" aria-hidden="true">
-//                       <div className="h-0.5 w-full bg-sky-600" />
-//                     </div>
-//                   ) : step.status === 'current' ? (
-//                     <div className="absolute inset-0 flex items-center" aria-hidden="true">
-//                       <div className="h-0.5 w-full bg-gray-200" />
-//                     </div>
-//                   ) : (
-//                     <div className="absolute inset-0 flex items-center" aria-hidden="true">
-//                       <div className="h-0.5 w-full bg-gray-200" />
-//                     </div>
-//                   )}
-//                   <div className={`relative w-8 h-8 flex items-center justify-center rounded-full border-2 bg-white ${
-//                     step.status === 'complete' ? 'border-sky-600 bg-sky-600' : 
-//                     step.status === 'current' ? 'border-sky-600' : 'border-gray-300'
-//                   }`}>
-//                     {step.status === 'complete' ? (
-//                       <CheckCircle className="w-5 h-5 text-white" />
-//                     ) : (
-//                       <span className={`text-sm font-medium ${
-//                         step.status === 'current' ? 'text-sky-600' : 'text-gray-500'
-//                       }`}>
-//                         {step.id}
-//                       </span>
-//                     )}
-//                   </div>
-//                   <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-sm font-medium text-gray-900">
-//                     {step.name}
-//                   </span>
-//                 </li>
-//               ))}
-//             </ol>
-//           </nav>
-//         </div>
-
-//         <div className="grid lg:grid-cols-3 gap-8">
-//           {/* Checkout Form */}
-//           <div className="lg:col-span-2">
-//             {currentStep === 1 && (
-//               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-//                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Shipping Information</h2>
-
-//                 <form className="space-y-6">
-//                   <div className="grid grid-cols-2 gap-4">
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-//                       <input
-//                         type="text"
-//                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-//                         placeholder="John"
-//                       />
-//                     </div>
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-//                       <input
-//                         type="text"
-//                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-//                         placeholder="Doe"
-//                       />
-//                     </div>
-//                   </div>
-
-//                   <div>
-//                     <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-//                     <input
-//                       type="email"
-//                       className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-//                       placeholder="john@example.com"
-//                     />
-//                   </div>
-
-//                   <div>
-//                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-//                     <input
-//                       type="tel"
-//                       className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-//                       placeholder="+1 (555) 123-4567"
-//                     />
-//                   </div>
-
-//                   <div>
-//                     <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
-//                     <input
-//                       type="text"
-//                       className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-//                       placeholder="123 Main Street"
-//                     />
-//                   </div>
-
-//                   <div className="grid grid-cols-2 gap-4">
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-//                       <input
-//                         type="text"
-//                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-//                         placeholder="New York"
-//                       />
-//                     </div>
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-//                       <select className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent">
-//                         <option>Select State</option>
-//                         <option>New York</option>
-//                         <option>California</option>
-//                         <option>Texas</option>
-//                       </select>
-//                     </div>
-//                   </div>
-
-//                   <div className="grid grid-cols-2 gap-4">
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-//                       <input
-//                         type="text"
-//                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-//                         placeholder="10001"
-//                       />
-//                     </div>
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-//                       <select className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent">
-//                         <option>United States</option>
-//                         <option>Canada</option>
-//                         <option>United Kingdom</option>
-//                       </select>
-//                     </div>
-//                   </div>
-
-//                   <div className="flex justify-end">
-//                     <button
-//                       type="button"
-//                       onClick={() => setCurrentStep(2)}
-//                       className="bg-sky-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-sky-600 transition-colors"
-//                     >
-//                       Continue to Payment
-//                     </button>
-//                   </div>
-//                 </form>
-//               </div>
-//             )}
-
-
-//           </div>
-
-//           {/* Order Summary */}
-//           <div className="lg:col-span-1">
-//             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-8">
-//               <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
-
-//               {/* Cart Items */}
-//               <div className="space-y-4 mb-6">
-//                 {cartItems.map((item) => (
-//                   <div key={item.id} className="flex items-center space-x-3">
-//                     <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-//                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-//                     </div>
-//                     <div className="flex-1">
-//                       <h4 className="text-sm font-medium text-gray-900">{item.name}</h4>
-//                       <p className="text-xs text-gray-600">{item.flavor} • {item.size}</p>
-//                       <p className="text-sm text-gray-900">Qty: {item.quantity}</p>
-//                     </div>
-//                     <span className="text-sm font-medium">${(item.price * item.quantity).toFixed(2)}</span>
-//                   </div>
-//                 ))}
-//               </div>
-
-//               {/* Pricing */}
-//               <div className="space-y-3 border-t pt-4">
-//                 <div className="flex justify-between">
-//                   <span className="text-gray-600">Subtotal</span>
-//                   <span className="font-medium">${subtotal.toFixed(2)}</span>
-//                 </div>
-//                 <div className="flex justify-between">
-//                   <span className="text-gray-600">Shipping</span>
-//                   <span className="font-medium text-green-600">Free</span>
-//                 </div>
-//                 <div className="flex justify-between">
-//                   <span className="text-gray-600">Tax</span>
-//                   <span className="font-medium">${tax.toFixed(2)}</span>
-//                 </div>
-//                 <div className="border-t pt-3">
-//                   <div className="flex justify-between">
-//                     <span className="text-lg font-semibold">Total</span>
-//                     <span className="text-lg font-semibold">${total.toFixed(2)}</span>
-//                   </div>
-//                 </div>
-//               </div>
-
-
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-
-
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Lock, CheckCircle, Truck, ShieldCheck } from 'lucide-react';
-import axios from 'axios';
+import { ShoppingBag, Lock, CheckCircle, Truck, ShieldCheck, User } from 'lucide-react';
 import { URL } from '../url';
-
-
+import { useCart } from '../context/CartContext';
 
 export default function Checkout() {
-  const [cartItems, setCartItems] = useState([]);
+  const { cartItems, fetchCartItems, clearCart } = useCart();
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderData, setOrderData] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [shippingInfo, setShippingInfo] = useState({
     firstName: '',
@@ -299,8 +25,6 @@ export default function Checkout() {
     zipCode: '',
     country: 'Nigeria'
   });
-
-
 
   // Load Paystack script
   useEffect(() => {
@@ -316,41 +40,37 @@ export default function Checkout() {
     };
   }, []);
 
-
   useEffect(() => {
-    fetchCartItems();
-    fetchAddresses();
+    checkAuthentication();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCartItems();
+      fetchAddresses();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (addresses.length === 0) {
+    if (addresses.length === 0 && isAuthenticated) {
       setShowNewAddressForm(true);
     }
-  }, [addresses]);
+  }, [addresses, isAuthenticated]);
 
-  const fetchCartItems = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch(`${URL}/api/cart`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCartItems(data.cartItems || []);
-      }
-    } catch (err) {
-      console.error('Error fetching cart items:', err);
+  const checkAuthentication = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect to login with return URL
+      localStorage.setItem('returnUrl', '/checkout');
+      window.location.href = '/login';
+      return;
     }
+    setIsAuthenticated(true);
   };
 
   const fetchAddresses = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Token:', token);
       if (!token) return;
 
       const response = await fetch(`${URL}/api/addresses`, {
@@ -359,7 +79,6 @@ export default function Checkout() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Addresses:', data.addresses);
         setAddresses(data.addresses || []);
 
         const defaultAddress = data.addresses?.find(addr => addr.isDefault);
@@ -437,105 +156,105 @@ export default function Checkout() {
     }
   };
 
-
-const handlePaystackSuccess = async (reference, order) => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${URL}/api/payments/confirm`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        orderId: order.id, // Use the order passed directly
-        paymentReference: reference.reference,
-        paymentMethod: 'paystack'
-      })
-    });
-
-    if (response.ok) {
-      await fetch(`${URL}/api/cart`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+  const handlePaystackSuccess = async (reference, order) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${URL}/api/payments/confirm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          paymentReference: reference.reference,
+          paymentMethod: 'paystack'
+        })
       });
-      
-      setOrderComplete(true);
-    } else {
-      throw new Error('Payment confirmation failed');
-    }
-  } catch (error) {
-    console.error('Payment confirmation failed:', error);
-    alert('Payment confirmation failed. Please contact support.');
-  }
-};
 
+      if (response.ok) {
+        await clearCart();
+        setOrderData(order);
+        setOrderComplete(true);
+      } else {
+        throw new Error('Payment confirmation failed');
+      }
+    } catch (error) {
+      console.error('Payment confirmation failed:', error);
+      alert('Payment confirmation failed. Please contact support.');
+    }
+  };
 
   const handlePaystackClose = () => {
     alert('Payment was cancelled. You can try again.');
   };
 
+  const handleMakePayment = async () => {
+    if (!isAuthenticated) {
+      localStorage.setItem('returnUrl', '/checkout');
+      window.location.href = '/login';
+      return;
+    }
 
-const handleMakePayment = async () => {
-  setLoading(true);
-  
-  try {
-    // Create or use existing address
-    let addressId = selectedAddressId;
+    setLoading(true);
     
-    if (!addressId && showNewAddressForm) {
-      const newAddress = await createAddress({
-        type: 'home',
-        ...shippingInfo,
-        isDefault: addresses.length === 0
+    try {
+      // Create or use existing address
+      let addressId = selectedAddressId;
+      
+      if (!addressId && showNewAddressForm) {
+        const newAddress = await createAddress({
+          type: 'home',
+          ...shippingInfo,
+          isDefault: addresses.length === 0
+        });
+        addressId = newAddress.id;
+      }
+
+      if (!addressId) {
+        alert('Please select or create a shipping address');
+        setLoading(false);
+        return;
+      }
+
+      // Create order FIRST
+      const order = await createOrder();
+      setOrderData(order);
+
+      // Initialize Paystack payment
+      if (!window.PaystackPop) {
+        alert('Paystack is not loaded. Please refresh the page and try again.');
+        setLoading(false);
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      const handler = window.PaystackPop.setup({
+        key: 'pk_live_1633fba5489bdc4774c767223f0e1c18d2e277f8', 
+        email: user?.email || shippingInfo.email,
+        amount: Math.round(total * 100),
+        currency: 'NGN',
+        ref: `${order.orderNumber}-${Date.now()}`,
+        metadata: {
+          order_id: order.id,
+          order_number: order.orderNumber,
+          customer_name: `${user?.firstName || shippingInfo.firstName} ${user?.lastName || shippingInfo.lastName}`
+        },
+        callback: function(response) {
+          handlePaystackSuccess(response, order);
+        },
+        onClose: handlePaystackClose
       });
-      addressId = newAddress.id;
-    }
 
-    if (!addressId) {
-      alert('Please select or create a shipping address');
+      handler.openIframe();
+    } catch (error) {
+      console.error('Payment initialization failed:', error);
+      alert('Failed to initialize payment. Please try again.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Create order FIRST
-    const order = await createOrder();
-    setOrderData(order); // Set order data immediately
-
-    // Initialize Paystack payment
-    if (!window.PaystackPop) {
-      alert('Paystack is not loaded. Please refresh the page and try again.');
-      setLoading(false);
-      return;
-    }
-
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    const handler = window.PaystackPop.setup({
-      key: 'pk_live_1633fba5489bdc4774c767223f0e1c18d2e277f8', 
-      email: user?.email || shippingInfo.email,
-      amount: Math.round(total * 100),
-      currency: 'NGN',
-      ref: `${order.orderNumber}-${Date.now()}`,
-      metadata: {
-        order_id: order.id,
-        order_number: order.orderNumber,
-        customer_name: `${user?.firstName || shippingInfo.firstName} ${user?.lastName || shippingInfo.lastName}`
-      },
-      callback: function(response) {
-        handlePaystackSuccess(response, order); // Pass order directly
-      },
-      onClose: handlePaystackClose
-    });
-
-    handler.openIframe();
-  } catch (error) {
-    console.error('Payment initialization failed:', error);
-    alert('Failed to initialize payment. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleInputChange = (field, value) => {
     setShippingInfo(prev => ({
@@ -545,7 +264,7 @@ const handleMakePayment = async () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const shipping = subtotal; // Free shipping
+  const shipping = subtotal > 23000 ? 0 : 100;
   const total = subtotal + shipping;
 
   const isFormValid = () => {
@@ -561,6 +280,48 @@ const handleMakePayment = async () => {
       shippingInfo.state &&
       shippingInfo.zipCode;
   };
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-white py-8 px-6 shadow-lg rounded-2xl border border-gray-100">
+            <User className="h-16 w-16 text-sky-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Sign In Required
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Please sign in to your account to proceed with checkout.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  localStorage.setItem('returnUrl', '/checkout');
+                  window.location.href = '/login';
+                }}
+                className="w-full bg-sky-500 text-white py-3 rounded-lg font-semibold hover:bg-sky-600 transition-colors"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => window.location.href = '/register'}
+                className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Create Account
+              </button>
+              <button
+                onClick={() => window.location.href = '/cart'}
+                className="w-full text-gray-500 py-2 text-sm hover:text-gray-700 transition-colors"
+              >
+                Back to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (orderComplete) {
     return (
@@ -594,6 +355,31 @@ const handleMakePayment = async () => {
     );
   }
 
+  // Show empty cart message if no items
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-white py-8 px-6 shadow-lg rounded-2xl border border-gray-100">
+            <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Cart is Empty
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Add some items to your cart before proceeding to checkout.
+            </p>
+            <button
+              onClick={() => window.location.href = '/products'}
+              className="w-full bg-sky-500 text-white py-3 rounded-lg font-semibold hover:bg-sky-600 transition-colors"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -601,7 +387,10 @@ const handleMakePayment = async () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="bg-sky-500 text-white px-3 py-2 rounded-lg font-bold text-xl">
+              <div 
+                onClick={() => window.location.href = '/'}
+                className="bg-sky-500 text-white px-3 py-2 rounded-lg font-bold text-xl cursor-pointer"
+              >
                 HOPG
               </div>
               <div className="hidden sm:block">
@@ -858,7 +647,7 @@ const handleMakePayment = async () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium text-green-600">Free</span>
+                  <span className="font-medium">{shipping === 0 ? 'Free' : `₦${shipping.toLocaleString()}`}</span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
@@ -873,7 +662,7 @@ const handleMakePayment = async () => {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Truck className="h-5 w-5 text-sky-500" />
-                    <span className="text-sm text-gray-600">Free shipping on all orders</span>
+                    <span className="text-sm text-gray-600">Free shipping over ₦23,000</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <ShieldCheck className="h-5 w-5 text-sky-500" />
