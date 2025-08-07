@@ -1,10 +1,11 @@
+//pages/ProductsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Search, Menu, Star, Heart, Filter, Grid, List, ChevronDown, Plus } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
-
-
+import { useCart } from '../context/CartContext';
+import Navbar from '../components/Navbar';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -12,7 +13,9 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({});
-  const [cartCount, setCartCount] = useState(0);
+  
+  // Use CartContext instead of local cart management
+  const { cartCount, addToCart } = useCart();
   
   // UI State
   const [viewMode, setViewMode] = useState('grid');
@@ -33,12 +36,9 @@ export default function ProductsPage() {
     limit: 12
   });
 
-
-
   useEffect(() => {
     fetchCategories();
     fetchProducts();
-    fetchCartCount();
   }, []);
 
   useEffect(() => {
@@ -79,57 +79,17 @@ export default function ProductsPage() {
     }
   };
 
-  const fetchCartCount = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch(`${URL}/api/cart`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const count = data.cartItems?.reduce((total, item) => total + item.quantity, 0) || 0;
-        setCartCount(count);
-      }
-    } catch (err) {
-      console.error('Error fetching cart count:', err);
-    }
-  };
-
-  const addToCart = async (productId, selectedFlavor = null, selectedSize = null) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login to add items to cart');
-        return;
-      }
-
-      const response = await fetch(`${URL}/api/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId,
-          quantity: 1,
-          selectedFlavor,
-          selectedSize
-        })
-      });
-
-      if (response.ok) {
-        setCartCount(prevCount => prevCount + 1);
-        alert('Product added to cart!');
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Failed to add product to cart');
-      }
-    } catch (err) {
-      console.error('Error adding to cart:', err);
-      alert('Failed to add product to cart. Please try again.');
+  // Updated addToCart function using CartContext
+  const handleAddToCart = async (product, selectedFlavor = null, selectedSize = null) => {
+    const defaultFlavor = selectedFlavor || getDefaultFlavor(product);
+    const defaultSize = selectedSize || getDefaultSize(product);
+    
+    const result = await addToCart(product, 1, defaultFlavor, defaultSize);
+    
+    if (result.success) {
+      alert(result.message);
+    } else {
+      alert(result.message || 'Failed to add product to cart');
     }
   };
 
@@ -228,50 +188,7 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div 
-                onClick={() => window.location.href = '/'}
-                className="bg-sky-500 text-white px-3 py-2 rounded-lg font-bold text-xl cursor-pointer"
-              >
-                HOPG
-              </div>
-              <div className="hidden sm:block">
-                <span className="text-gray-600 text-sm">Home of Protein Goodies</span>
-              </div>
-            </div>
-
-            <div className="hidden md:flex flex-1 max-w-lg mx-8">
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Search for protein supplements..."
-                  value={filters.search}
-                  onChange={(e) => updateFilter('search', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => window.location.href = '/cart'}
-                className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ShoppingBag className="h-5 w-5 text-gray-600" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+  <Navbar/>
 
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -394,7 +311,7 @@ export default function ProductsPage() {
               </div>
 
               {/* Featured Filter */}
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -404,7 +321,7 @@ export default function ProductsPage() {
                   />
                   <span className="text-gray-600">Featured Only</span>
                 </label>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -566,7 +483,7 @@ export default function ProductsPage() {
                           </div>
 
                           <button 
-                            onClick={() => addToCart(product.id, getDefaultFlavor(product), getDefaultSize(product))}
+                            onClick={() => handleAddToCart(product)}
                             disabled={product.stockQuantity === 0}
                             className={`w-full py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
                               product.stockQuantity > 0 
@@ -640,7 +557,7 @@ export default function ProductsPage() {
                             </div>
                             
                             <button 
-                              onClick={() => addToCart(product.id, getDefaultFlavor(product), getDefaultSize(product))}
+                              onClick={() => handleAddToCart(product)}
                               disabled={product.stockQuantity === 0}
                               className={`px-6 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2 ${
                                 product.stockQuantity > 0 

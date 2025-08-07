@@ -1,8 +1,9 @@
-
+//pages/CheckoutPage.jsx
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Lock, CheckCircle, Truck, ShieldCheck, User } from 'lucide-react';
 import { URL } from '../url';
 import { useCart } from '../context/CartContext';
+import Navbar from '../components/Navbar';
 
 export default function Checkout() {
   const { cartItems, fetchCartItems, clearCart } = useCart();
@@ -383,28 +384,7 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div 
-                onClick={() => window.location.href = '/'}
-                className="bg-sky-500 text-white px-3 py-2 rounded-lg font-bold text-xl cursor-pointer"
-              >
-                HOPG
-              </div>
-              <div className="hidden sm:block">
-                <span className="text-gray-600 text-sm">Home of Protein Goodies</span>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Lock className="h-4 w-4 text-green-600" />
-              <span className="text-sm text-gray-600">Secure Checkout</span>
-            </div>
-          </div>
-        </div>
-      </nav>
+<Navbar/>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -662,16 +642,13 @@ export default function Checkout() {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Truck className="h-5 w-5 text-sky-500" />
-                    <span className="text-sm text-gray-600">Free shipping over ₦23,000</span>
+                    <span className="text-sm text-gray-600">24 - 72 hour delivery all over Nigeria</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <ShieldCheck className="h-5 w-5 text-sky-500" />
                     <span className="text-sm text-gray-600">Secure payment with Paystack</span>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-sky-500" />
-                    <span className="text-sm text-gray-600">30-day money-back guarantee</span>
-                  </div>
+                
                 </div>
               </div>
             </div>

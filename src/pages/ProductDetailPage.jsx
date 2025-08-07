@@ -1,8 +1,11 @@
+//pages/ProductDetailPage.jsx
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Search, Star, ArrowRight, Heart, Share2, Truck, Shield, RotateCcw, Plus, Minus } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import Navbar from '../components/Navbar';
 
 export default function ProductDetails({ productId = '1' }) {
   const [product, setProduct] = useState(null);
@@ -10,7 +13,9 @@ export default function ProductDetails({ productId = '1' }) {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [cartCount, setCartCount] = useState(0);
+  
+  // Use CartContext instead of local cart management
+  const { cartCount, addToCart } = useCart();
   
   // Product selection state
   const [selectedImage, setSelectedImage] = useState(0);
@@ -28,7 +33,6 @@ export default function ProductDetails({ productId = '1' }) {
     comment: ''
   });
 
-
   useEffect(() => {
     // Get productId from URL if not provided as prop
     const urlProductId = window.location.pathname.split('/').pop();
@@ -36,7 +40,6 @@ export default function ProductDetails({ productId = '1' }) {
     
     fetchProduct(currentProductId);
     fetchReviews(currentProductId);
-    fetchCartCount();
   }, [productId]);
 
   useEffect(() => {
@@ -96,57 +99,14 @@ export default function ProductDetails({ productId = '1' }) {
     }
   };
 
-  const fetchCartCount = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch(`${URL}/api/cart`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const count = data.cartItems?.reduce((total, item) => total + item.quantity, 0) || 0;
-        setCartCount(count);
-      }
-    } catch (err) {
-      console.error('Error fetching cart count:', err);
-    }
-  };
-
-  const addToCart = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login to add items to cart');
-        return;
-      }
-
-      const response = await fetch(`${URL}/api/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity,
-          selectedFlavor,
-          selectedSize
-        })
-      });
-
-      if (response.ok) {
-        setCartCount(prevCount => prevCount + quantity);
-        alert('Product added to cart!');
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to add to cart');
-      }
-    } catch (err) {
-      console.error('Error adding to cart:', err);
-      alert('Failed to add product to cart. Please try again.');
+  // Updated addToCart function using CartContext
+  const handleAddToCart = async () => {
+    const result = await addToCart(product, quantity, selectedFlavor, selectedSize);
+    
+    if (result.success) {
+      alert(result.message);
+    } else {
+      alert(result.message || 'Failed to add product to cart');
     }
   };
 
@@ -218,36 +178,14 @@ export default function ProductDetails({ productId = '1' }) {
     }
   };
 
-  const addRelatedToCart = async (relatedProductId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login to add items to cart');
-        return;
-      }
-
-      const response = await fetch(`${URL}/api/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId: relatedProductId,
-          quantity: 1
-        })
-      });
-
-      if (response.ok) {
-        setCartCount(prevCount => prevCount + 1);
-        alert('Product added to cart!');
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to add to cart');
-      }
-    } catch (err) {
-      console.error('Error adding to cart:', err);
-      alert('Failed to add product to cart. Please try again.');
+  // Updated addRelatedToCart function using CartContext
+  const addRelatedToCart = async (relatedProduct) => {
+    const result = await addToCart(relatedProduct, 1);
+    
+    if (result.success) {
+      alert(result.message);
+    } else {
+      alert(result.message || 'Failed to add product to cart');
     }
   };
 
@@ -312,48 +250,7 @@ export default function ProductDetails({ productId = '1' }) {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div 
-                onClick={() => window.location.href = '/'}
-                className="bg-sky-500 text-white px-3 py-2 rounded-lg font-bold text-xl cursor-pointer"
-              >
-                HOPG
-              </div>
-              <div className="hidden sm:block">
-                <span className="text-gray-600 text-sm">Home of Protein Goodies</span>
-              </div>
-            </div>
-
-            <div className="hidden md:flex flex-1 max-w-lg mx-8">
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Search for protein supplements..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => window.location.href = '/cart'}
-                className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ShoppingBag className="h-5 w-5 text-gray-600" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+ <Navbar/>
 
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -411,7 +308,7 @@ export default function ProductDetails({ productId = '1' }) {
               <div className="mb-2">
                 <span className="text-sm text-sky-600 font-medium">{product.brand}</span>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 uppercase">{product.name}</h1>
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
@@ -510,7 +407,7 @@ export default function ProductDetails({ productId = '1' }) {
             {/* Add to Cart */}
             <div className="space-y-3">
               <button 
-                onClick={addToCart}
+                onClick={handleAddToCart}
                 disabled={product.stockQuantity === 0}
                 className={`w-full py-4 rounded-lg font-semibold transition-colors ${
                   product.stockQuantity > 0 
@@ -518,7 +415,7 @@ export default function ProductDetails({ productId = '1' }) {
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {product.stockQuantity > 0 ? `Add to Cart - ${currentPrice}` : 'Out of Stock'}
+                {product.stockQuantity > 0 ? `Add to Cart - ₦${(currentPrice * quantity).toLocaleString()}` : 'Out of Stock'}
               </button>
               <div className="flex space-x-3">
                 <button 
@@ -540,16 +437,13 @@ export default function ProductDetails({ productId = '1' }) {
               <div className="grid grid-cols-1 gap-4">
                 <div className="flex items-center space-x-3">
                   <Truck className="h-5 w-5 text-sky-500" />
-                  <span className="text-gray-600">Free shipping on orders over ₦23,000</span>
+                  <span className="text-gray-600">24 - 72 hour delivery all over Nigeria</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Shield className="h-5 w-5 text-sky-500" />
                   <span className="text-gray-600">100% quality guarantee</span>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <RotateCcw className="h-5 w-5 text-sky-500" />
-                  <span className="text-gray-600">30-day return policy</span>
-                </div>
+           
               </div>
             </div>
           </div>
@@ -799,7 +693,7 @@ export default function ProductDetails({ productId = '1' }) {
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-bold text-gray-900">₦{(relatedProduct.price).toLocaleString()}</span>
                       <button 
-                        onClick={() => addRelatedToCart(relatedProduct.id)}
+                        onClick={() => addRelatedToCart(relatedProduct)}
                         className="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors"
                       >
                         Add to Cart
