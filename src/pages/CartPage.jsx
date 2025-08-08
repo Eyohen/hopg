@@ -230,16 +230,13 @@ export default function CartPage() {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
                       <Truck className="h-5 w-5 text-sky-500" />
-                      <span className="text-sm text-gray-600">Free shipping over ₦23,000</span>
+                      <span className="text-sm text-gray-600">24 - 72 hour delivery all over Nigeria</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <ShieldCheck className="h-5 w-5 text-sky-500" />
                       <span className="text-sm text-gray-600">Secure checkout</span>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <RotateCcw className="h-5 w-5 text-sky-500" />
-                      <span className="text-sm text-gray-600">30-day returns</span>
-                    </div>
+        
                   </div>
                 </div>
               </div>
