@@ -170,7 +170,7 @@ export default function HomePage() {
               <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
                 <div className="flex items-center space-x-2">
                   <Truck className="h-5 w-5 text-sky-500" />
-                  <span className="text-sm font-medium">Free Shipping</span>
+                  <span className="text-sm font-medium">24 - 72 hour delivery all over Nigeria</span>
                 </div>
               </div>
             </div>
@@ -306,8 +306,8 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <div className="bg-sky-500 text-white px-3 py-2 rounded-lg font-bold text-xl">
-                  HOPG
+                <div className="text-white px-3 py-2 rounded-lg font-bold text-xl">
+                       <img src={logo} className='w-16 h-14 rounded-md' alt="HOPG Logo" />
                 </div>
               </div>
               <p className="text-gray-400">

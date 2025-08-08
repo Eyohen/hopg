@@ -4,7 +4,7 @@ import { ShoppingBag, Search, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { URL } from '../url';
-import logo from '../assets/logo.jpg'; // Adjust the path to your logo
+import logo from '../assets/logo.jpg';
 
 export default function Navbar() {
   const navigate = useNavigate();
