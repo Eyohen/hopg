@@ -4,7 +4,7 @@ import { ShoppingBag, Search, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { URL } from '../url';
-import logo from '../assets/logo.jpg';
+import logo2 from '../assets/logo2.jpg';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function Navbar() {
               onClick={handleLogoClick}
               className="text-white px-3 py-2 rounded-lg font-bold text-xl cursor-pointer"
             >
-              <img src={logo} className='w-16 h-14 rounded-md' alt="HOPG Logo" />
+              <img src={logo2} className='w-22 h-16 rounded-md' alt="HOPG Logo" />
             </div>
             <div className="hidden sm:block">
               <span className="text-gray-600 text-sm">Home of Protein Goodies</span>
@@ -55,7 +55,7 @@ export default function Navbar() {
             <form onSubmit={handleSearch} className="relative w-full">
               <input
                 type="text"
-                placeholder="Search for goodies"
+                placeholder="Search for goodies..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"

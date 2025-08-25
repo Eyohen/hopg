@@ -183,7 +183,7 @@ export default function ProductsPage() {
     return '';
   };
 
-  const brands = [...new Set(products.map(p => p.brand).filter(Boolean))];
+  const brands = [...new Set(products.map(p => p.brand?.name).filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -443,7 +443,7 @@ export default function ProductsPage() {
                         
                         <div className="p-6">
                           <div className="mb-2">
-                            <span className="text-xs text-sky-600 font-medium">{product.brand}</span>
+                            <span className="text-xs text-sky-600 font-medium">{product.brand?.name || 'No Brand'}</span>
                           </div>
                           <h3 
                             onClick={() => window.location.href = `/product/${product.id}`}

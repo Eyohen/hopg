@@ -295,7 +295,7 @@
 // // Simple Pie Chart Component
 // function PieChart({ data, title }) {
 //   const total = data.reduce((sum, item) => sum + parseFloat(item.value || 0), 0);
-  
+
 //   const colors = [
 //     '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
 //     '#f97316', '#06b6d4', '#84cc16', '#ec4899', '#6366f1'
@@ -309,7 +309,7 @@
 //         <PieChartIcon className="h-5 w-5 mr-2 text-sky-500" />
 //         {title}
 //       </h3>
-      
+
 //       <div className="flex items-center justify-center">
 //         <div className="relative w-48 h-48">
 //           <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 100 100">
@@ -317,9 +317,9 @@
 //               const percentage = (parseFloat(item.value || 0) / total) * 100;
 //               const strokeDasharray = `${percentage} ${100 - percentage}`;
 //               const strokeDashoffset = -cumulativePercentage;
-              
+
 //               cumulativePercentage += percentage;
-              
+
 //               return (
 //                 <circle
 //                   key={index}
@@ -336,7 +336,7 @@
 //               );
 //             })}
 //           </svg>
-          
+
 //           <div className="absolute inset-0 flex items-center justify-center">
 //             <div className="text-center">
 //               <div className="text-2xl font-bold text-gray-900">₦{total.toLocaleString()}</div>
@@ -345,7 +345,7 @@
 //           </div>
 //         </div>
 //       </div>
-      
+
 //       <div className="mt-4 space-y-2">
 //         {data.map((item, index) => (
 //           <div key={index} className="flex items-center justify-between">
@@ -564,7 +564,7 @@
 //             title="Revenue by Category"
 //           />
 //         )}
-        
+
 //         {statusChartData.length > 0 && (
 //           <PieChart 
 //             data={statusChartData} 
@@ -1383,7 +1383,7 @@ import {
   TrendingUp, Settings, Bell, Search, Menu, X, ChevronDown,
   BarChart3, Calendar, AlertCircle, CheckCircle, Clock,
   Eye, Edit, Trash2, Plus, Filter, Download, ArrowUp,
-  ArrowDown, MoreVertical, Star, Truck, ArrowRight
+  ArrowDown, MoreVertical, Star, Truck, ArrowRight, Tag, Award
 } from 'lucide-react';
 import { URL } from '../url';
 
@@ -1394,6 +1394,8 @@ import OrdersContent from '../components/admin/OrdersContent';
 import CustomersContent from '../components/admin/CustomersContent';
 import AnalyticsContent from '../components/admin/AnalyticsContent';
 import SettingsContent from '../components/admin/SettingsContent';
+import DiscountManagement from '../components/admin/DiscountManagement';
+import BrandsManagement from '../components/admin/BrandsManagement'; 
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -1405,6 +1407,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [categories, setCategories] = useState([]);
+ const [brands, setBrands] = useState([]);
 
   const getAuthToken = () => {
     return localStorage.getItem('token');
@@ -1426,6 +1429,32 @@ export default function AdminDashboard() {
     return options;
   };
 
+  //  const fetchBrands = async () => {
+  //   try {
+  //     const response = await fetch(`${URL}/api/brands?includeInactive=true`, getFetchOptions());
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setBrands(data.brands || []);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching brands:', error);
+  //   }
+  // };
+  const fetchBrands = async () => {
+    try {
+      const response = await fetch(`${URL}/api/brands?includeInactive=true`, getFetchOptions());
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Brands data:', data); // Debug log
+        setBrands(data.brands || []);
+      } else {
+        console.error('Failed to fetch brands:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -1441,15 +1470,32 @@ export default function AdminDashboard() {
     }
   };
 
+  // const fetchProducts = async () => {
+  //   try {
+  //     const response = await fetch(`${URL}/api/products?limit=50`, getFetchOptions());
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setProducts(data.products || []);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching products:', error);
+  //   }
+  // };
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${URL}/api/products?limit=50`, getFetchOptions());
+      setLoading(true);
+      const response = await fetch(`${URL}/api/products?limit=100`, getFetchOptions());
       if (response.ok) {
         const data = await response.json();
+        console.log('Products data:', data); // Debug log
         setProducts(data.products || []);
+      } else {
+        console.error('Failed to fetch products:', response.status);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1478,17 +1524,32 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchCategories = async () => {
+  // const fetchCategories = async () => {
+  //   try {
+  //     const response = await fetch(`${URL}/api/categories`, getFetchOptions());
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setCategories(data.categories || []);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching categories:', error);
+  //   }
+  // };
+   const fetchCategories = async () => {
     try {
       const response = await fetch(`${URL}/api/categories`, getFetchOptions());
       if (response.ok) {
         const data = await response.json();
+        console.log('Categories data:', data); // Debug log
         setCategories(data.categories || []);
+      } else {
+        console.error('Failed to fetch categories:', response.status);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
   };
+
 
   useEffect(() => {
     fetchDashboardData();
@@ -1496,6 +1557,7 @@ export default function AdminDashboard() {
     fetchOrders();
     fetchUsers();
     fetchCategories();
+    fetchBrands();
   }, []);
 
   useEffect(() => {
@@ -1505,12 +1567,17 @@ export default function AdminDashboard() {
         break;
       case 'products':
         fetchProducts();
+           fetchCategories();
+        fetchBrands(); // Fetch brands when products tab is active
         break;
       case 'orders':
         fetchOrders();
         break;
       case 'customers':
         fetchUsers();
+        break;
+          case 'brands':
+        fetchBrands();
         break;
       default:
         break;
@@ -1522,6 +1589,8 @@ export default function AdminDashboard() {
     { id: 'products', label: 'Products', icon: Package },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'customers', label: 'Customers', icon: Users },
+       { id: 'brands', label: 'Brands', icon: Award }, 
+    { id: 'discounts', label: 'Discounts', icon: Tag },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
@@ -1555,6 +1624,7 @@ export default function AdminDashboard() {
         return <ProductsContent
           products={products}
           categories={categories}
+           brands={brands} 
           fetchProducts={fetchProducts}
           {...commonProps}
         />;
@@ -1570,6 +1640,10 @@ export default function AdminDashboard() {
           fetchUsers={fetchUsers}
           {...commonProps}
         />;
+         case 'brands': // Add this case
+        return <BrandsManagement {...commonProps} />;
+      case 'discounts': // Add this case
+        return <DiscountManagement {...commonProps} />;
       case 'analytics':
         return <AnalyticsContent
           data={dashboardData}
@@ -1662,8 +1736,8 @@ export default function AdminDashboard() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${activeTab === item.id
-                    ? 'bg-sky-50 text-sky-600'
-                    : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-sky-50 text-sky-600'
+                  : 'text-gray-600 hover:bg-gray-50'
                   }`}
               >
                 <item.icon className="h-5 w-5 flex-shrink-0" />

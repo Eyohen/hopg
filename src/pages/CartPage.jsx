@@ -1,3 +1,4 @@
+//pages/CartPage.jsx
 import React, { useEffect } from 'react';
 import { ShoppingBag, Search, Plus, Minus, X, ArrowRight, Truck, ShieldCheck, RotateCcw } from 'lucide-react';
 import { useCart } from '../context/CartContext';

@@ -5,6 +5,8 @@ import { URL } from '../url';
 import { useCart } from '../context/CartContext';
 import logo from '../assets/logo.jpg'
 import Navbar from '../components/Navbar';
+import hero from '../assets/hero.jpg'
+
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -162,12 +164,12 @@ export default function HomePage() {
             <div className="relative">
               <div className="bg-gradient-to-br from-sky-100 to-sky-200 rounded-3xl p-8 shadow-2xl">
                 <img
-                  src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=600&fit=crop"
+                  src={hero}
                   alt="Premium Protein Supplements"
                   className="w-full h-96 object-cover rounded-2xl"
                 />
               </div>
-              <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
+              <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
                 <div className="flex items-center space-x-2">
                   <Truck className="h-5 w-5 text-sky-500" />
                   <span className="text-sm font-medium">24 - 72 hour delivery all over Nigeria</span>
