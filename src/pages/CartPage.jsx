@@ -15,6 +15,7 @@ export default function CartPage() {
     fetchCartItems,
     isLoggedIn
   } = useCart();
+  
 
   useEffect(() => {
     fetchCartItems();
