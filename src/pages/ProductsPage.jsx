@@ -13,14 +13,14 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({});
-  
+
   // Use CartContext instead of local cart management
   const { cartCount, addToCart } = useCart();
-  
+
   // UI State
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Filter State
   const [filters, setFilters] = useState({
     search: '',
@@ -59,7 +59,7 @@ export default function ProductsPage() {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
-      
+
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== '' && value !== false && value !== null) {
           queryParams.append(key, value.toString());
@@ -68,7 +68,7 @@ export default function ProductsPage() {
 
       const response = await fetch(`${URL}/api/products?${queryParams}`);
       const data = await response.json();
-      
+
       setProducts(data.products || []);
       setPagination(data.pagination || {});
     } catch (err) {
@@ -83,9 +83,9 @@ export default function ProductsPage() {
   const handleAddToCart = async (product, selectedFlavor = null, selectedSize = null) => {
     const defaultFlavor = selectedFlavor || getDefaultFlavor(product);
     const defaultSize = selectedSize || getDefaultSize(product);
-    
+
     const result = await addToCart(product, 1, defaultFlavor, defaultSize);
-    
+
     if (result.success) {
       alert(result.message);
     } else {
@@ -183,22 +183,30 @@ export default function ProductsPage() {
     return '';
   };
 
-  const brands = [...new Set(products.map(p => p.brand?.name).filter(Boolean))];
+  const brands = products.reduce((acc, p) => {
+  if (p.brand && p.brand.id && p.brand.name) {
+    const existing = acc.find(b => b.id === p.brand.id);
+    if (!existing) {
+      acc.push({ id: p.brand.id, name: p.brand.name });
+    }
+  }
+  return acc;
+}, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-  <Navbar/>
+      <Navbar />
 
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <nav className="text-sm text-gray-500">
-          <span 
+          <span
             onClick={() => window.location.href = '/'}
             className="cursor-pointer hover:text-gray-700"
           >
             Home
-          </span> 
+          </span>
           <span className="mx-2">/</span>
           <span className="text-gray-900">Products</span>
         </nav>
@@ -225,11 +233,10 @@ export default function ProductsPage() {
                 <div className="space-y-2">
                   <button
                     onClick={() => updateFilter('category', '')}
-                    className={`w-full flex justify-between items-center p-2 rounded-lg transition-colors ${
-                      filters.category === '' 
-                        ? 'bg-sky-50 text-sky-700' 
+                    className={`w-full flex justify-between items-center p-2 rounded-lg transition-colors ${filters.category === ''
+                        ? 'bg-sky-50 text-sky-700'
                         : 'text-gray-600 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     <span>All Products</span>
                     <span className="text-sm">({products.length})</span>
@@ -238,11 +245,10 @@ export default function ProductsPage() {
                     <button
                       key={category.id}
                       onClick={() => updateFilter('category', category.id)}
-                      className={`w-full flex justify-between items-center p-2 rounded-lg transition-colors ${
-                        filters.category === category.id 
-                          ? 'bg-sky-50 text-sky-700' 
+                      className={`w-full flex justify-between items-center p-2 rounded-lg transition-colors ${filters.category === category.id
+                          ? 'bg-sky-50 text-sky-700'
                           : 'text-gray-600 hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       <span>{category.name}</span>
                       <span className="text-sm">({category.productCount || 0})</span>
@@ -275,22 +281,20 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {/* Brands */}
               {brands.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-medium text-gray-900 mb-3">Brands</h3>
                   <div className="space-y-2">
                     {brands.map((brand) => (
                       <button
-                        key={brand}
-                        onClick={() => updateFilter('brand', filters.brand === brand ? '' : brand)}
-                        className={`w-full text-left p-2 rounded-lg transition-colors ${
-                          filters.brand === brand 
-                            ? 'bg-sky-50 text-sky-700' 
+                        key={brand.id}
+                        onClick={() => updateFilter('brand', filters.brand === brand.id ? '' : brand.id)}
+                        className={`w-full text-left p-2 rounded-lg transition-colors ${filters.brand === brand.id
+                            ? 'bg-sky-50 text-sky-700'
                             : 'text-gray-600 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
-                        {brand}
+                        {brand.name}
                       </button>
                     ))}
                   </div>
@@ -396,7 +400,7 @@ export default function ProductsPage() {
             {error && (
               <div className="text-center py-12">
                 <p className="text-red-600 mb-4">{error}</p>
-                <button 
+                <button
                   onClick={fetchProducts}
                   className="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors"
                 >
@@ -426,7 +430,7 @@ export default function ProductsPage() {
                               </span>
                             </div>
                           )}
-                          <button 
+                          <button
                             onClick={() => addToWishlist(product.id)}
                             className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
                           >
@@ -440,18 +444,18 @@ export default function ProductsPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="p-6">
                           <div className="mb-2">
                             <span className="text-xs text-sky-600 font-medium">{product.brand?.name || 'No Brand'}</span>
                           </div>
-                          <h3 
+                          <h3
                             onClick={() => window.location.href = `/product/${product.id}`}
                             className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2 cursor-pointer hover:text-sky-600"
                           >
                             {product.name}
                           </h3>
-                          
+
                           <div className="flex items-center space-x-2 mb-3">
                             <div className="flex items-center">
                               {[...Array(5)].map((_, i) => (
@@ -482,14 +486,13 @@ export default function ProductsPage() {
                             </div>
                           </div>
 
-                          <button 
+                          <button
                             onClick={() => handleAddToCart(product)}
                             disabled={product.stockQuantity === 0}
-                            className={`w-full py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
-                              product.stockQuantity > 0 
-                                ? 'bg-sky-500 text-white hover:bg-sky-600' 
+                            className={`w-full py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${product.stockQuantity > 0
+                                ? 'bg-sky-500 text-white hover:bg-sky-600'
                                 : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            }`}
+                              }`}
                           >
                             <Plus className="h-4 w-4" />
                             <span>{product.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
@@ -517,18 +520,18 @@ export default function ProductsPage() {
                               </span>
                             )}
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="mb-1">
                               <span className="text-xs text-sky-600 font-medium">{product.brand}</span>
                             </div>
-                            <h3 
+                            <h3
                               onClick={() => window.location.href = `/product/${product.id}`}
                               className="font-semibold text-lg text-gray-900 mb-2 cursor-pointer hover:text-sky-600"
                             >
                               {product.name}
                             </h3>
-                            
+
                             <div className="flex items-center space-x-4 mb-2">
                               <div className="flex items-center space-x-1">
                                 {[...Array(5)].map((_, i) => (
@@ -555,15 +558,14 @@ export default function ProductsPage() {
                                 <span className="text-sm text-gray-500 line-through">₦{(product.originalPrice).toLocaleString()}</span>
                               )}
                             </div>
-                            
-                            <button 
+
+                            <button
                               onClick={() => handleAddToCart(product)}
                               disabled={product.stockQuantity === 0}
-                              className={`px-6 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2 ${
-                                product.stockQuantity > 0 
-                                  ? 'bg-sky-500 text-white hover:bg-sky-600' 
+                              className={`px-6 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2 ${product.stockQuantity > 0
+                                  ? 'bg-sky-500 text-white hover:bg-sky-600'
                                   : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                              }`}
+                                }`}
                             >
                               <Plus className="h-4 w-4" />
                               <span>{product.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
@@ -585,26 +587,25 @@ export default function ProductsPage() {
                     >
                       Previous
                     </button>
-                    
+
                     {[...Array(pagination.pages)].map((_, index) => {
                       const pageNumber = index + 1;
                       const isCurrentPage = pageNumber === pagination.page;
-                      
+
                       return (
                         <button
                           key={pageNumber}
                           onClick={() => handlePageChange(pageNumber)}
-                          className={`px-3 py-2 rounded-lg transition-colors ${
-                            isCurrentPage 
-                              ? 'bg-sky-500 text-white' 
+                          className={`px-3 py-2 rounded-lg transition-colors ${isCurrentPage
+                              ? 'bg-sky-500 text-white'
                               : 'border border-gray-300 hover:bg-gray-50'
-                          }`}
+                            }`}
                         >
                           {pageNumber}
                         </button>
                       );
                     })}
-                    
+
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page === pagination.pages}

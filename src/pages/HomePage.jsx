@@ -147,9 +147,7 @@ export default function HomePage() {
                   <span>Shop Now</span>
                   <ArrowRight className="h-5 w-5" />
                 </button>
-                <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
-                  Learn More
-                </button>
+               
               </div>
 
               {/* Stats */}

@@ -1,3 +1,7 @@
+//components/admin/AnalyticsContent.jsx
+
+import { useState, useEffect } from "react";
+import {BarChart3,TrendingUp,PieChart  } from 'lucide-react';
 
 export default function AnalyticsContent({ data, getFetchOptions }) {
   const [analyticsData, setAnalyticsData] = useState(null);

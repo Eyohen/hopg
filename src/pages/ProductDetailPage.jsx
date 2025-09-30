@@ -306,7 +306,9 @@ export default function ProductDetails({ productId = '1' }) {
           <div className="space-y-6">
             <div>
               <div className="mb-2">
-                <span className="text-sm text-sky-600 font-medium">{product.brand}</span>
+                  <span className="text-xs text-sky-600 font-medium">
+                      {product.brand?.name || 'No Brand'}
+                    </span>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2 uppercase">{product.name}</h1>
               <div className="flex items-center space-x-4 mb-4">
