@@ -1,3 +1,4 @@
+//src/pages/HomePage.jsx
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Search, Menu, Star, ArrowRight, Users, Award, Truck, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,7 +12,7 @@ import hero from '../assets/hero.jpg'
 export default function HomePage() {
   const navigate = useNavigate();
   const { cartCount, addToCart } = useCart();
-  
+
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,15 +26,16 @@ export default function HomePage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch categories
       const categoriesResponse = await fetch(`${URL}/api/categories`);
       const categoriesData = await categoriesResponse.json();
-      
+
       // Fetch featured products
       const productsResponse = await fetch(`${URL}/api/products/featured?limit=6`);
       const productsData = await productsResponse.json();
-      
+      console.log('Product images:', productsData.products.map(p => p.imageUrl));
+
       setCategories(categoriesData.categories || []);
       setFeaturedProducts(productsData.products || []);
     } catch (err) {
@@ -47,9 +49,9 @@ export default function HomePage() {
   const handleAddToCart = async (product) => {
     const selectedFlavor = getDefaultFlavor(product);
     const selectedSize = getDefaultSize(product);
-    
+
     const result = await addToCart(product, 1, selectedFlavor, selectedSize);
-    
+
     if (result.success) {
       alert(result.message);
     } else {
@@ -64,7 +66,7 @@ export default function HomePage() {
     try {
       const response = await fetch(`${URL}/api/products?search=${encodeURIComponent(searchQuery)}&limit=20`);
       const data = await response.json();
-      
+
       console.log('Search results:', data.products);
       alert(`Found ${data.products.length} products for "${searchQuery}"`);
     } catch (err) {
@@ -72,6 +74,8 @@ export default function HomePage() {
       alert('Search failed. Please try again.');
     }
   };
+
+  
 
   const getDefaultFlavor = (product) => {
     if (product.flavors && product.flavors.length > 0) {
@@ -103,7 +107,7 @@ export default function HomePage() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={fetchData}
             className="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors"
           >
@@ -117,7 +121,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-    <Navbar/>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-sky-50 to-white py-20">
@@ -130,13 +134,13 @@ export default function HomePage() {
                   <span className="text-sky-500 block">PROTEIN GOODIES</span>
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Home of protein goodies is a hub for all healthy goodies. 
+                  Home of protein goodies is a hub for all healthy goodies.
                   Fuel your fitness journey with premium supplements.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4">
-                <button 
+                <button
                   onClick={() => navigate('/products')}
                   className="bg-sky-500 text-white px-8 py-4 rounded-lg font-semibold hover:bg-sky-600 transition-colors flex items-center justify-center space-x-2"
                 >
@@ -232,15 +236,17 @@ export default function HomePage() {
                 </div>
                 <div className="p-6">
                   <div className="mb-2">
-                    <span className="text-xs text-sky-600 font-medium">{product.brand}</span>
+                    <span className="text-xs text-sky-600 font-medium">
+                      {product.brand?.name || 'No Brand'}
+                    </span>
                   </div>
-                  <h3 
+                  <h3
                     className="font-semibold text-lg text-gray-900 mb-2 cursor-pointer hover:text-sky-600 uppercase"
                     onClick={() => navigate(`/product/${product.id}`)}
                   >
                     {product.name}
                   </h3>
-                  
+
                   <div className="flex items-center space-x-2 mb-3">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
@@ -269,7 +275,7 @@ export default function HomePage() {
                         <span className="text-lg text-gray-500 line-through">₦{(product.originalPrice).toLocaleString()}</span>
                       )}
                     </div>
-                    <button 
+                    <button
                       onClick={() => handleAddToCart(product)}
                       className="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors flex items-center space-x-1"
                     >
@@ -293,7 +299,7 @@ export default function HomePage() {
           <p className="text-xl text-sky-100 mb-8">
             Join thousands of athletes who trust HOPG for their protein needs
           </p>
-          <button 
+          <button
             onClick={() => navigate('/products')}
             className="bg-white text-sky-500 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
           >
@@ -309,14 +315,14 @@ export default function HomePage() {
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <div className="text-white px-3 py-2 rounded-lg font-bold text-xl">
-                       <img src={logo} className='w-16 h-14 rounded-md' alt="HOPG Logo" />
+                  <img src={logo} className='w-16 h-14 rounded-md' alt="HOPG Logo" />
                 </div>
               </div>
               <p className="text-gray-400">
                 Your trusted partner for premium protein supplements and fitness nutrition.
               </p>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Categories</h3>
               <ul className="space-y-2 text-gray-400">
@@ -329,7 +335,7 @@ export default function HomePage() {
                 ))}
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
@@ -339,7 +345,7 @@ export default function HomePage() {
                 <li><a href="#" className="hover:text-white transition-colors">Returns</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Newsletter</h3>
               <p className="text-gray-400 mb-4">Get the latest updates on new products and offers.</p>
@@ -355,7 +361,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2025 HOPG - Home of Protein Goodies. All rights reserved.</p>
           </div>
