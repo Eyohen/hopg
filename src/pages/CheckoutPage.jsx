@@ -1,6 +1,6 @@
-// //pages/CheckoutPage.jsx
+// // //pages/CheckoutPage.jsx
 // import React, { useState, useEffect } from 'react';
-// import { ShoppingBag, Lock, CheckCircle, Truck, ShieldCheck, User } from 'lucide-react';
+// import { ShoppingBag, Lock, CheckCircle, Truck, ShieldCheck, User, Tag, X } from 'lucide-react';
 // import { URL } from '../url';
 // import { useCart } from '../context/CartContext';
 // import Navbar from '../components/Navbar';
@@ -14,6 +14,12 @@
 //   const [orderComplete, setOrderComplete] = useState(false);
 //   const [orderData, setOrderData] = useState(null);
 //   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+//   // Discount states
+//   const [discountCode, setDiscountCode] = useState('');
+//   const [appliedDiscount, setAppliedDiscount] = useState(null);
+//   const [discountLoading, setDiscountLoading] = useState(false);
+//   const [discountError, setDiscountError] = useState('');
 
 //   const [shippingInfo, setShippingInfo] = useState({
 //     firstName: '',
@@ -61,7 +67,6 @@
 //   const checkAuthentication = () => {
 //     const token = localStorage.getItem('token');
 //     if (!token) {
-//       // Redirect to login with return URL
 //       localStorage.setItem('returnUrl', '/checkout');
 //       window.location.href = '/login';
 //       return;
@@ -90,6 +95,53 @@
 //     } catch (err) {
 //       console.error('Error fetching addresses:', err);
 //     }
+//   };
+
+//   const validateDiscountCode = async () => {
+//     if (!discountCode.trim()) {
+//       setDiscountError('Please enter a discount code');
+//       return;
+//     }
+
+//     setDiscountLoading(true);
+//     setDiscountError('');
+
+//     try {
+//       const token = localStorage.getItem('token');
+//       const response = await fetch(`${URL}/api/discounts/validate`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           ...(token && { Authorization: `Bearer ${token}` })
+//         },
+//         body: JSON.stringify({
+//           code: discountCode.trim(),
+//           subtotal: subtotal
+//         })
+//       });
+
+//       const data = await response.json();
+
+//       if (response.ok && data.valid) {
+//         setAppliedDiscount(data.discount);
+//         setDiscountError('');
+//       } else {
+//         setDiscountError(data.message || 'Invalid discount code');
+//         setAppliedDiscount(null);
+//       }
+//     } catch (error) {
+//       console.error('Error validating discount:', error);
+//       setDiscountError('Failed to validate discount code');
+//       setAppliedDiscount(null);
+//     } finally {
+//       setDiscountLoading(false);
+//     }
+//   };
+
+//   const removeDiscount = () => {
+//     setAppliedDiscount(null);
+//     setDiscountCode('');
+//     setDiscountError('');
 //   };
 
 //   const createAddress = async (addressData) => {
@@ -139,7 +191,8 @@
 //         body: JSON.stringify({
 //           items: orderItems,
 //           shippingAddressId: selectedAddressId,
-//           paymentMethod: 'paystack'
+//           paymentMethod: 'paystack',
+//           discountCode: appliedDiscount ? appliedDiscount.code : null
 //         })
 //       });
 
@@ -149,7 +202,7 @@
 //       } else {
 //         const errorData = await response.json();
 //         console.log('Order creation error:', errorData);
-//         throw new Error('Failed to create order');
+//         throw new Error(errorData.message || 'Failed to create order');
 //       }
 //     } catch (err) {
 //       console.error('Error creating order:', err);
@@ -265,8 +318,11 @@
 //   };
 
 //   const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-//   const shipping = subtotal > 23000 ? 0 : 100;
-//   const total = subtotal + shipping;
+//   const discountAmount = appliedDiscount ? appliedDiscount.discountAmount : 0;
+//   const discountedSubtotal = subtotal - discountAmount;
+//   const shipping = discountedSubtotal > 23000 ? 0 : 500;
+//   const tax = discountedSubtotal * 0.075; // 7.5% VAT
+//   const total = discountedSubtotal + shipping + tax;
 
 //   const isFormValid = () => {
 //     if (selectedAddressId) return true;
@@ -384,7 +440,7 @@
 //   return (
 //     <div className="min-h-screen bg-gray-50">
 //       {/* Navigation */}
-// <Navbar/>
+//       <Navbar/>
 
 //       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 //         <div className="mb-8">
@@ -619,21 +675,94 @@
 //                 ))}
 //               </div>
 
+//               {/* Discount Code Section */}
+//               <div className="mb-6 pb-6 border-b border-gray-200">
+//                 <h3 className="text-lg font-medium text-gray-900 mb-3">Discount Code</h3>
+                
+//                 {appliedDiscount ? (
+//                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+//                     <div className="flex items-center justify-between">
+//                       <div>
+//                         <div className="flex items-center space-x-2">
+//                           <Tag className="h-4 w-4 text-green-600" />
+//                           <span className="text-green-800 font-medium">{appliedDiscount.code}</span>
+//                         </div>
+//                         <p className="text-sm text-green-600 mt-1">{appliedDiscount.name}</p>
+//                         <p className="text-sm font-medium text-green-800">
+//                           -₦{appliedDiscount.discountAmount.toLocaleString()} saved!
+//                         </p>
+//                       </div>
+//                       <button
+//                         onClick={removeDiscount}
+//                         className="text-green-600 hover:text-green-800"
+//                       >
+//                         <X className="h-4 w-4" />
+//                       </button>
+//                     </div>
+//                   </div>
+//                 ) : (
+//                   <div className="space-y-3">
+//                     <div className="flex space-x-2">
+//                       <input
+//                         type="text"
+//                         value={discountCode}
+//                         onChange={(e) => setDiscountCode(e.target.value)}
+//                         placeholder="Enter discount code"
+//                         className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm"
+//                       />
+//                       <button
+//                         onClick={validateDiscountCode}
+//                         disabled={discountLoading || !discountCode.trim()}
+//                         className="bg-sky-500 text-white px-4 py-3 rounded-lg font-medium hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+//                       >
+//                         {discountLoading ? (
+//                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+//                         ) : (
+//                           'Apply'
+//                         )}
+//                       </button>
+//                     </div>
+//                     {discountError && (
+//                       <p className="text-sm text-red-600">{discountError}</p>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+
 //               {/* Pricing */}
 //               <div className="space-y-3 border-t pt-4">
 //                 <div className="flex justify-between">
 //                   <span className="text-gray-600">Subtotal</span>
 //                   <span className="font-medium">₦{subtotal.toLocaleString()}</span>
 //                 </div>
+                
+//                 {appliedDiscount && (
+//                   <div className="flex justify-between text-green-600">
+//                     <span>Discount ({appliedDiscount.code})</span>
+//                     <span className="font-medium">-₦{discountAmount.toLocaleString()}</span>
+//                   </div>
+//                 )}
+                
 //                 <div className="flex justify-between">
 //                   <span className="text-gray-600">Shipping</span>
 //                   <span className="font-medium">{shipping === 0 ? 'Free' : `₦${shipping.toLocaleString()}`}</span>
 //                 </div>
+                
+//                 <div className="flex justify-between">
+//                   <span className="text-gray-600">Tax (7.5%)</span>
+//                   <span className="font-medium">₦{tax.toLocaleString()}</span>
+//                 </div>
+                
 //                 <div className="border-t pt-3">
 //                   <div className="flex justify-between">
 //                     <span className="text-lg font-semibold">Total</span>
 //                     <span className="text-lg font-semibold">₦{total.toLocaleString()}</span>
 //                   </div>
+//                   {appliedDiscount && (
+//                     <p className="text-sm text-green-600 mt-1">
+//                       You saved ₦{discountAmount.toLocaleString()}!
+//                     </p>
+//                   )}
 //                 </div>
 //               </div>
 
@@ -648,7 +777,6 @@
 //                     <ShieldCheck className="h-5 w-5 text-sky-500" />
 //                     <span className="text-sm text-gray-600">Secure payment with Paystack</span>
 //                   </div>
-                
 //                 </div>
 //               </div>
 //             </div>
@@ -661,9 +789,7 @@
 
 
 
-
-
-
+// //pages/CheckoutPage.jsx
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Lock, CheckCircle, Truck, ShieldCheck, User, Tag, X } from 'lucide-react';
 import { URL } from '../url';
@@ -679,6 +805,12 @@ export default function Checkout() {
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Delivery fee states
+  const [deliveryFees, setDeliveryFees] = useState([]);
+  const [selectedDeliveryState, setSelectedDeliveryState] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [estimatedDays, setEstimatedDays] = useState(null);
   
   // Discount states
   const [discountCode, setDiscountCode] = useState('');
@@ -720,6 +852,7 @@ export default function Checkout() {
     if (isAuthenticated) {
       fetchCartItems();
       fetchAddresses();
+      fetchDeliveryFees();
     }
   }, [isAuthenticated]);
 
@@ -728,6 +861,13 @@ export default function Checkout() {
       setShowNewAddressForm(true);
     }
   }, [addresses, isAuthenticated]);
+
+  // Update delivery fee when state changes
+  useEffect(() => {
+    if (shippingInfo.state) {
+      handleDeliveryStateChange(shippingInfo.state);
+    }
+  }, [shippingInfo.state]);
 
   const checkAuthentication = () => {
     const token = localStorage.getItem('token');
@@ -755,10 +895,35 @@ export default function Checkout() {
         const defaultAddress = data.addresses?.find(addr => addr.isDefault);
         if (defaultAddress) {
           setSelectedAddressId(defaultAddress.id);
+          handleDeliveryStateChange(defaultAddress.state);
         }
       }
     } catch (err) {
       console.error('Error fetching addresses:', err);
+    }
+  };
+
+  const fetchDeliveryFees = async () => {
+    try {
+      const response = await fetch(`${URL}/api/delivery-fees?limit=50&sortBy=state&sortOrder=ASC`);
+      if (response.ok) {
+        const data = await response.json();
+        setDeliveryFees(data.deliveryFees || []);
+      }
+    } catch (error) {
+      console.error('Error fetching delivery fees:', error);
+    }
+  };
+
+  const handleDeliveryStateChange = (state) => {
+    setSelectedDeliveryState(state);
+    const selectedFee = deliveryFees.find(fee => fee.state === state);
+    if (selectedFee) {
+      setDeliveryFee(parseFloat(selectedFee.fee));
+      setEstimatedDays(selectedFee.estimatedDays);
+    } else {
+      setDeliveryFee(0);
+      setEstimatedDays(null);
     }
   };
 
@@ -915,6 +1080,11 @@ export default function Checkout() {
       return;
     }
 
+    if (deliveryFee === 0) {
+      alert('Please select a delivery state');
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -958,7 +1128,9 @@ export default function Checkout() {
         metadata: {
           order_id: order.id,
           order_number: order.orderNumber,
-          customer_name: `${user?.firstName || shippingInfo.firstName} ${user?.lastName || shippingInfo.lastName}`
+          customer_name: `${user?.firstName || shippingInfo.firstName} ${user?.lastName || shippingInfo.lastName}`,
+          delivery_state: selectedDeliveryState,
+          delivery_fee: deliveryFee
         },
         callback: function(response) {
           handlePaystackSuccess(response, order);
@@ -985,9 +1157,7 @@ export default function Checkout() {
   const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const discountAmount = appliedDiscount ? appliedDiscount.discountAmount : 0;
   const discountedSubtotal = subtotal - discountAmount;
-  const shipping = discountedSubtotal > 23000 ? 0 : 500;
-  const tax = discountedSubtotal * 0.075; // 7.5% VAT
-  const total = discountedSubtotal + shipping + tax;
+  const total = discountedSubtotal + deliveryFee;
 
   const isFormValid = () => {
     if (selectedAddressId) return true;
@@ -1134,6 +1304,7 @@ export default function Checkout() {
                         onClick={() => {
                           setSelectedAddressId(address.id);
                           setShowNewAddressForm(false);
+                          handleDeliveryStateChange(address.state);
                         }}
                       >
                         <div className="flex items-center justify-between">
@@ -1158,7 +1329,10 @@ export default function Checkout() {
                             type="radio"
                             name="address"
                             checked={selectedAddressId === address.id}
-                            onChange={() => setSelectedAddressId(address.id)}
+                            onChange={() => {
+                              setSelectedAddressId(address.id);
+                              handleDeliveryStateChange(address.state);
+                            }}
                             className="text-sky-600 focus:ring-sky-500"
                           />
                         </div>
@@ -1249,14 +1423,22 @@ export default function Checkout() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                      <input
-                        type="text"
+                      <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
+                      <select
                         value={shippingInfo.state}
-                        onChange={(e) => handleInputChange('state', e.target.value)}
+                        onChange={(e) => {
+                          handleInputChange('state', e.target.value);
+                          handleDeliveryStateChange(e.target.value);
+                        }}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                        placeholder="Lagos State"
-                      />
+                      >
+                        <option value="">Select state</option>
+                        {deliveryFees.map((fee) => (
+                          <option key={fee.id} value={fee.state}>
+                            {fee.state}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -1279,9 +1461,6 @@ export default function Checkout() {
                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                       >
                         <option value="Nigeria">Nigeria</option>
-                        <option value="United States">United States</option>
-                        <option value="United Kingdom">United Kingdom</option>
-                        <option value="Canada">Canada</option>
                       </select>
                     </div>
                   </div>
@@ -1291,7 +1470,7 @@ export default function Checkout() {
               <div className="flex justify-end mt-8">
                 <button
                   onClick={handleMakePayment}
-                  disabled={loading || !isFormValid()}
+                  disabled={loading || !isFormValid() || deliveryFee === 0}
                   className="bg-sky-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
                   {loading ? (
@@ -1409,14 +1588,27 @@ export default function Checkout() {
                 )}
                 
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">{shipping === 0 ? 'Free' : `₦${shipping.toLocaleString()}`}</span>
+                  <span className="text-gray-600">Delivery Fee</span>
+                  <span className="font-medium">
+                    {deliveryFee === 0 ? 'Select state' : `₦${deliveryFee.toLocaleString()}`}
+                  </span>
                 </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax (7.5%)</span>
-                  <span className="font-medium">₦{tax.toLocaleString()}</span>
-                </div>
+
+                {selectedDeliveryState && estimatedDays && (
+                  <div className="bg-sky-50 border border-sky-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <Truck className="h-4 w-4 text-sky-600" />
+                      <div>
+                        <p className="text-sm font-medium text-sky-900">
+                          Delivering to {selectedDeliveryState}
+                        </p>
+                        <p className="text-xs text-sky-700">
+                          Est. {estimatedDays} {estimatedDays === 1 ? 'day' : 'days'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
@@ -1436,7 +1628,7 @@ export default function Checkout() {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Truck className="h-5 w-5 text-sky-500" />
-                    <span className="text-sm text-gray-600">24 - 72 hour delivery all over Nigeria</span>
+                    <span className="text-sm text-gray-600">Delivery across Nigeria</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <ShieldCheck className="h-5 w-5 text-sky-500" />
