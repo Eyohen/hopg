@@ -67,7 +67,9 @@ export default function ProductDetails({ productId = '1' }) {
       }
       
       const data = await response.json();
+      console.log("see product", data)
       setProduct(data.product);
+
     } catch (err) {
       console.error('Error fetching product:', err);
       setError('Failed to load product. Please try again.');

@@ -376,7 +376,7 @@ export default function ProductModal({
             {/* Ingredients */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ingredients
+               Nutrition facts
               </label>
               <textarea
                 name="ingredients"

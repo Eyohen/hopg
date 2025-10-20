@@ -164,7 +164,7 @@ export default function HomePage() {
             </div>
 
             <div className="relative">
-              <div className="bg-gradient-to-br from-sky-100 to-sky-200 rounded-3xl p-8 shadow-2xl">
+              <div className="bg-gradient-to-br from-sky-100 to-sky-200 rounded-3xl p-2 shadow-2xl">
                 <img
                   src={hero}
                   alt="Premium Protein Supplements"
