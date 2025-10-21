@@ -268,9 +268,9 @@ export default function HomePage() {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-bold text-gray-900">₦{(product.price).toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-gray-900">₦{Number(product.price).toLocaleString()}</span>
                       {product.originalPrice && product.originalPrice > product.price && (
-                        <span className="text-lg text-gray-500 line-through">₦{(product.originalPrice).toLocaleString()}</span>
+                        <span className="text-lg text-gray-500 line-through">₦{Number(product.originalPrice).toLocaleString()}</span>
                       )}
                     </div>
                     <button

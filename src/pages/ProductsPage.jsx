@@ -479,9 +479,9 @@ export default function ProductsPage() {
 
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center space-x-2">
-                              <span className="text-xl font-bold text-gray-900">₦{(product.price).toLocaleString()}</span>
+                              <span className="text-xl font-bold text-gray-900">₦{Number(product.price).toLocaleString()}</span>
                               {product.originalPrice && product.originalPrice > product.price && (
-                                <span className="text-sm text-gray-500 line-through">₦{(product.originalPrice).toLocaleString()}</span>
+                                <span className="text-sm text-gray-500 line-through">₦{Number(product.originalPrice).toLocaleString()}</span>
                               )}
                             </div>
                           </div>
@@ -553,9 +553,9 @@ export default function ProductsPage() {
 
                           <div className="text-right">
                             <div className="flex items-center space-x-2 mb-3">
-                              <span className="text-xl font-bold text-gray-900">₦{(product.price).toLocaleString()}</span>
+                              <span className="text-xl font-bold text-gray-900">₦{Number(product.price).toLocaleString()}</span>
                               {product.originalPrice && product.originalPrice > product.price && (
-                                <span className="text-sm text-gray-500 line-through">₦{(product.originalPrice).toLocaleString()}</span>
+                                <span className="text-sm text-gray-500 line-through">₦{Number(product.originalPrice).toLocaleString()}</span>
                               )}
                             </div>
 

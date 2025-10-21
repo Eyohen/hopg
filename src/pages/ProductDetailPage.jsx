@@ -325,10 +325,10 @@ export default function ProductDetails({ productId = '1' }) {
                 </span>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="text-3xl font-bold text-gray-900">₦{currentPrice.toLocaleString()}</span>
+                <span className="text-3xl font-bold text-gray-900">₦{Number(currentPrice).toLocaleString()}</span>
                 {originalPrice && originalPrice > currentPrice && (
                   <>
-                    <span className="text-xl text-gray-500 line-through">₦{originalPrice.toLocaleString()}</span>
+                    <span className="text-xl text-gray-500 line-through">₦{Number(originalPrice).toLocaleString()}</span>
                     <span className="bg-red-100 text-red-800 px-2 py-1 rounded-lg text-sm font-medium">
                       Save {Math.round(((originalPrice - currentPrice) / originalPrice) * 100)}%
                     </span>
@@ -357,7 +357,7 @@ export default function ProductDetails({ productId = '1' }) {
                       }`}
                     >
                       <div className="font-medium">{sizeOption.size}</div>
-                      <div className="text-sm text-gray-600">₦{(sizeOption.price).toLocaleString()}</div>
+                      <div className="text-sm text-gray-600">₦{Number(sizeOption.price).toLocaleString()}</div>
                     </button>
                   ))}
                 </div>
@@ -419,7 +419,7 @@ export default function ProductDetails({ productId = '1' }) {
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {product.stockQuantity > 0 ? `Add to Cart - ₦${(currentPrice * quantity).toLocaleString()}` : 'Out of Stock'}
+                {product.stockQuantity > 0 ? `Add to Cart - ₦${Number(currentPrice * quantity).toLocaleString()}` : 'Out of Stock'}
               </button>
               <div className="flex space-x-3">
                 <button 
@@ -695,8 +695,8 @@ export default function ProductDetails({ productId = '1' }) {
                       <span className="text-sm text-gray-600">({relatedProduct.reviewCount || 0})</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-gray-900">₦{(relatedProduct.price).toLocaleString()}</span>
-                      <button 
+                      <span className="text-xl font-bold text-gray-900">₦{Number(relatedProduct.price).toLocaleString()}</span>
+                      <button
                         onClick={() => addRelatedToCart(relatedProduct)}
                         className="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors"
                       >

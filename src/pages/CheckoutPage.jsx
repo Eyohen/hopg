@@ -1294,50 +1294,58 @@ export default function Checkout() {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Shipping Address</h3>
                   <div className="space-y-3">
-                    {addresses.map((address) => (
-                      <div
-                        key={address.id}
-                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === address.id
-                            ? 'border-sky-500 bg-sky-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        onClick={() => {
-                          setSelectedAddressId(address.id);
-                          setShowNewAddressForm(false);
-                          handleDeliveryStateChange(address.state);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium">{address.type}</span>
-                              {address.isDefault && (
-                                <span className="px-2 py-1 text-xs bg-sky-100 text-sky-800 rounded-full">
-                                  Default
-                                </span>
+                    {addresses.map((address) => {
+                      const addressFee = deliveryFees.find(fee => fee.state === address.state);
+                      return (
+                        <div
+                          key={address.id}
+                          className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === address.id
+                              ? 'border-sky-500 bg-sky-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          onClick={() => {
+                            setSelectedAddressId(address.id);
+                            setShowNewAddressForm(false);
+                            handleDeliveryStateChange(address.state);
+                          }}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium">{address.type}</span>
+                                {address.isDefault && (
+                                  <span className="px-2 py-1 text-xs bg-sky-100 text-sky-800 rounded-full">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {address.firstName} {address.lastName}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {address.streetAddress}, {address.city}, {address.state} {address.zipCode}
+                              </p>
+                              <p className="text-sm text-gray-600">{address.phone}</p>
+                              {addressFee && (
+                                <p className="text-xs text-sky-600 mt-2 font-medium">
+                                  Delivery: ₦{parseFloat(addressFee.fee).toLocaleString()} • {addressFee.estimatedDays} {addressFee.estimatedDays === 1 ? 'day' : 'days'}
+                                </p>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {address.firstName} {address.lastName}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {address.streetAddress}, {address.city}, {address.state} {address.zipCode}
-                            </p>
-                            <p className="text-sm text-gray-600">{address.phone}</p>
+                            <input
+                              type="radio"
+                              name="address"
+                              checked={selectedAddressId === address.id}
+                              onChange={() => {
+                                setSelectedAddressId(address.id);
+                                handleDeliveryStateChange(address.state);
+                              }}
+                              className="text-sky-600 focus:ring-sky-500 mt-1"
+                            />
                           </div>
-                          <input
-                            type="radio"
-                            name="address"
-                            checked={selectedAddressId === address.id}
-                            onChange={() => {
-                              setSelectedAddressId(address.id);
-                              handleDeliveryStateChange(address.state);
-                            }}
-                            className="text-sky-600 focus:ring-sky-500"
-                          />
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   <button
@@ -1423,7 +1431,7 @@ export default function Checkout() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">State (Delivery Location) *</label>
                       <select
                         value={shippingInfo.state}
                         onChange={(e) => {
@@ -1435,10 +1443,15 @@ export default function Checkout() {
                         <option value="">Select state</option>
                         {deliveryFees.map((fee) => (
                           <option key={fee.id} value={fee.state}>
-                            {fee.state}
+                            {fee.state} - ₦{parseFloat(fee.fee).toLocaleString()} ({fee.estimatedDays} {fee.estimatedDays === 1 ? 'day' : 'days'})
                           </option>
                         ))}
                       </select>
+                      {shippingInfo.state && deliveryFee > 0 && (
+                        <p className="text-xs text-sky-600 mt-1">
+                          Delivery fee: ₦{deliveryFee.toLocaleString()} • Estimated: {estimatedDays} {estimatedDays === 1 ? 'day' : 'days'}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -1579,14 +1592,33 @@ export default function Checkout() {
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium">₦{subtotal.toLocaleString()}</span>
                 </div>
-                
+
                 {appliedDiscount && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount ({appliedDiscount.code})</span>
                     <span className="font-medium">-₦{discountAmount.toLocaleString()}</span>
                   </div>
                 )}
-                
+
+                {/* Delivery Fee Dropdown */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Location
+                  </label>
+                  <select
+                    value={selectedDeliveryState}
+                    onChange={(e) => handleDeliveryStateChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm"
+                  >
+                    <option value="">Select delivery state</option>
+                    {deliveryFees.map((fee) => (
+                      <option key={fee.id} value={fee.state}>
+                        {fee.state} - ₦{parseFloat(fee.fee).toLocaleString()} ({fee.estimatedDays} {fee.estimatedDays === 1 ? 'day' : 'days'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery Fee</span>
                   <span className="font-medium">
@@ -1609,7 +1641,7 @@ export default function Checkout() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold">Total</span>

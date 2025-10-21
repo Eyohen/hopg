@@ -252,11 +252,10 @@
 
 
 //pages/CartPage.jsx
-import React, { useEffect, useState } from 'react';
-import { ShoppingBag, Search, Plus, Minus, X, ArrowRight, Truck, ShieldCheck, RotateCcw } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { ShoppingBag, Plus, Minus, ArrowRight, Truck, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
-import { URL } from '../url';
 
 export default function CartPage() {
   const { 
@@ -270,46 +269,16 @@ export default function CartPage() {
     isLoggedIn
   } = useCart();
   
-  const [deliveryFees, setDeliveryFees] = useState([]);
-  const [selectedState, setSelectedState] = useState('');
-  const [deliveryFee, setDeliveryFee] = useState(0);
-  const [estimatedDays, setEstimatedDays] = useState(null);
-
   useEffect(() => {
     fetchCartItems();
-    fetchDeliveryFees();
   }, []);
-
-  const fetchDeliveryFees = async () => {
-    try {
-      const response = await fetch(`${URL}/api/delivery-fees?limit=50&sortBy=state&sortOrder=ASC`);
-      if (response.ok) {
-        const data = await response.json();
-        setDeliveryFees(data.deliveryFees || []);
-      }
-    } catch (error) {
-      console.error('Error fetching delivery fees:', error);
-    }
-  };
-
-  const handleStateChange = (state) => {
-    setSelectedState(state);
-    const selectedFee = deliveryFees.find(fee => fee.state === state);
-    if (selectedFee) {
-      setDeliveryFee(parseFloat(selectedFee.fee));
-      setEstimatedDays(selectedFee.estimatedDays);
-    } else {
-      setDeliveryFee(0);
-      setEstimatedDays(null);
-    }
-  };
 
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   };
 
   const subtotal = calculateSubtotal();
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   const handleUpdateQuantity = async (itemId, newQuantity) => {
     if (newQuantity === 0) {
@@ -474,37 +443,6 @@ export default function CartPage() {
                     <span className="font-medium">₦{subtotal.toLocaleString()}</span>
                   </div>
 
-                  {/* State Selection for Delivery */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select State for Delivery Fee
-                    </label>
-                    <select
-                      value={selectedState}
-                      onChange={(e) => handleStateChange(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    >
-                      <option value="">Choose your state</option>
-                      {deliveryFees.map((fee) => (
-                        <option key={fee.id} value={fee.state}>
-                          {fee.state} - ₦{parseFloat(fee.fee).toLocaleString()}
-                        </option>
-                      ))}
-                    </select>
-                    {estimatedDays && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Estimated delivery: {estimatedDays} {estimatedDays === 1 ? 'day' : 'days'}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Delivery Fee</span>
-                    <span className="font-medium">
-                      {deliveryFee === 0 ? 'Select state' : `₦${deliveryFee.toLocaleString()}`}
-                    </span>
-                  </div>
-
                   <div className="border-t pt-4">
                     <div className="flex justify-between">
                       <span className="text-lg font-semibold">Total</span>
@@ -513,23 +451,11 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {selectedState && (
-                  <div className="bg-sky-50 border border-sky-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-start space-x-2">
-                      <Truck className="h-5 w-5 text-sky-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-sky-900">
-                          Delivering to {selectedState}
-                        </p>
-                        {estimatedDays && (
-                          <p className="text-xs text-sky-700 mt-1">
-                            Expected delivery in {estimatedDays} {estimatedDays === 1 ? 'day' : 'days'}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className="bg-sky-50 border border-sky-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-sky-800">
+                    <strong>Note:</strong> Delivery fee will be calculated at checkout based on your delivery address.
+                  </p>
+                </div>
 
                 <button 
                   onClick={handleCheckout}
