@@ -513,7 +513,7 @@ export default function AdminDashboard() {
                         <img 
                           src={product.product?.imageUrl || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=100&h=100&fit=crop'} 
                           alt={product.product?.name || 'Product'} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       </div>
                       <div>

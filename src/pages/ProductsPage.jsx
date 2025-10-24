@@ -420,7 +420,7 @@ export default function ProductsPage() {
                           <img
                             src={product.imageUrl || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop'}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 cursor-pointer"
                             onClick={() => window.location.href = `/product/${product.id}`}
                           />
                           {getProductBadge(product) && (
@@ -511,7 +511,7 @@ export default function ProductsPage() {
                             <img
                               src={product.imageUrl || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop'}
                               alt={product.name}
-                              className="w-full h-full object-cover rounded-lg cursor-pointer"
+                              className="w-full h-full object-contain rounded-lg cursor-pointer"
                               onClick={() => window.location.href = `/product/${product.id}`}
                             />
                             {getProductBadge(product) && (

@@ -184,7 +184,7 @@ export default function ProductsContent({
                     <img
                       src={product.imageUrl || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=100&h=100&fit=crop'}
                       alt={product.name}
-                      className="h-10 w-10 rounded-lg object-cover"
+                      className="h-10 w-10 rounded-lg object-contain"
                     />
                     <div>
                       <div className="font-medium text-gray-900">{product.name}</div>

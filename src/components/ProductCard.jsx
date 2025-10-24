@@ -13,7 +13,7 @@ console.log("product.price:", product.price)
           <img 
             src={product.imageUrl} 
             alt={product.name} 
-            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110 rounded-2xl"
+            className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-110 rounded-2xl"
           />
         </div>
         <div className="p-4">

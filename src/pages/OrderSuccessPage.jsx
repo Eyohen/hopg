@@ -146,7 +146,7 @@ export default function OrderSuccess() {
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-16 h-16 rounded-lg object-cover"
+                    className="w-16 h-16 rounded-lg object-contain"
                   />
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{item.name}</h4>
@@ -227,7 +227,7 @@ export default function OrderSuccess() {
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-32 object-cover rounded-lg mb-4"
+                  className="w-full h-32 object-contain rounded-lg mb-4"
                 />
                 <h3 className="font-medium text-gray-900 mb-2">{product.name}</h3>
                 <div className="flex items-center space-x-2 mb-4">

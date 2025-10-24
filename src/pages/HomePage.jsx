@@ -9,6 +9,59 @@ import Navbar from '../components/Navbar';
 import hero from '../assets/hero.jpg'
 
 
+import preworkout from '../assets/preworkout.jpeg'
+import proteinpowder from '../assets/proteinpowder.jpeg'
+import creatine from '../assets/creatine.jpeg'
+import mealreplacement from '../assets/mealreplacement.jpeg'
+import fatburners from '../assets/fatburners.jpeg'
+import proteinsnacks from '../assets/proteinsnacks.jpeg'
+import bottleshakers from '../assets/bottleshakers.jpeg'
+
+// Category image mapping - maps category names to imported images
+const categoryImageMap = {
+  'pre-workout': preworkout,
+  'preworkout': preworkout,
+  'pre workout': preworkout,
+  'protein powder': proteinpowder,
+  'protein': proteinpowder,
+  'whey protein': proteinpowder,
+  'creatine': creatine,
+  'meal replacement': mealreplacement,
+  'meal replacements': mealreplacement,
+  'fat burners': fatburners,
+  'fat burner': fatburners,
+  'weight loss': fatburners,
+  'protein snacks': proteinsnacks,
+  'snacks': proteinsnacks,
+  'protein bars': proteinsnacks,
+  'bottle shakers': bottleshakers,
+  'shakers': bottleshakers,
+  'bottles': bottleshakers,
+  'bottle': bottleshakers,
+  'shaker bottles': bottleshakers,
+};
+
+// Helper function to get category image
+const getCategoryImage = (category) => {
+  // Try to match by name (case-insensitive)
+  const categoryNameLower = category.name?.toLowerCase() || '';
+
+  // Direct match
+  if (categoryImageMap[categoryNameLower]) {
+    return categoryImageMap[categoryNameLower];
+  }
+
+  // Partial match - check if category name contains any key
+  for (const [key, image] of Object.entries(categoryImageMap)) {
+    if (categoryNameLower.includes(key) || key.includes(categoryNameLower)) {
+      return image;
+    }
+  }
+
+  // Default fallback
+  return 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop';
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { cartCount, addToCart } = useCart();
@@ -196,7 +249,7 @@ export default function HomePage() {
                 <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-sky-200">
                   <div className="aspect-square mb-4 overflow-hidden rounded-xl">
                     <img
-                      src={category.imageUrl || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop'}
+                      src={getCategoryImage(category)}
                       alt={category.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -228,7 +281,7 @@ export default function HomePage() {
                   <img
                     src={product.imageUrl || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop'}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 cursor-pointer"
                     onClick={() => navigate(`/product/${product.id}`)}
                   />
                 </div>

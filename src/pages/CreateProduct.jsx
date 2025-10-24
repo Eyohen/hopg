@@ -99,7 +99,7 @@ const CreateProduct = () => {
                   <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-500 transition-colors ${preview ? 'bg-gray-50' : 'bg-white'}`}>
                     <div className="space-y-1 text-center">
                       {preview ? (
-                        <img src={preview} alt="Preview" className="mx-auto h-32 w-32 object-cover rounded" />
+                        <img src={preview} alt="Preview" className="mx-auto h-32 w-32 object-contain rounded" />
                       ) : (
                         <RiUpload2Line className="mx-auto h-12 w-12 text-gray-400" />
                       )}
