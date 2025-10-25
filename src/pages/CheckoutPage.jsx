@@ -846,13 +846,17 @@ export default function Checkout() {
 
   useEffect(() => {
     checkAuthentication();
+    fetchDeliveryFees(); // Always fetch delivery fees for both guest and authenticated users
   }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchCartItems();
       fetchAddresses();
-      fetchDeliveryFees();
+    } else {
+      // For guest users, load cart from localStorage and show the address form
+      fetchCartItems(); // This will load guest cart from localStorage
+      setShowNewAddressForm(true);
     }
   }, [isAuthenticated]);
 
@@ -871,12 +875,11 @@ export default function Checkout() {
 
   const checkAuthentication = () => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      localStorage.setItem('returnUrl', '/checkout');
-      window.location.href = '/login';
-      return;
+    if (token) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
-    setIsAuthenticated(true);
   };
 
   const fetchAddresses = async () => {
@@ -1012,18 +1015,44 @@ export default function Checkout() {
         selectedSize: item.selectedSize
       }));
 
+      // Build order payload based on authentication status
+      const orderPayload = {
+        items: orderItems,
+        paymentMethod: 'paystack',
+        discountCode: appliedDiscount ? appliedDiscount.code : null
+      };
+
+      // For authenticated users with saved address
+      if (isAuthenticated && selectedAddressId) {
+        orderPayload.shippingAddressId = selectedAddressId;
+      } else {
+        // For guest users or authenticated users entering new address
+        orderPayload.guestShippingInfo = {
+          firstName: shippingInfo.firstName,
+          lastName: shippingInfo.lastName,
+          email: shippingInfo.email,
+          phone: shippingInfo.phone,
+          streetAddress: shippingInfo.streetAddress,
+          city: shippingInfo.city,
+          state: shippingInfo.state,
+          zipCode: shippingInfo.zipCode,
+          country: shippingInfo.country
+        };
+      }
+
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add authorization header only if authenticated
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${URL}/api/orders`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          items: orderItems,
-          shippingAddressId: selectedAddressId,
-          paymentMethod: 'paystack',
-          discountCode: appliedDiscount ? appliedDiscount.code : null
-        })
+        headers: headers,
+        body: JSON.stringify(orderPayload)
       });
 
       if (response.ok) {
@@ -1043,12 +1072,19 @@ export default function Checkout() {
   const handlePaystackSuccess = async (reference, order) => {
     try {
       const token = localStorage.getItem('token');
+
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add authorization header only if authenticated
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${URL}/api/payments/confirm`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        headers: headers,
         body: JSON.stringify({
           orderId: order.id,
           paymentReference: reference.reference,
@@ -1057,7 +1093,8 @@ export default function Checkout() {
       });
 
       if (response.ok) {
-        await clearCart();
+        // Clear cart for both authenticated and guest users
+        await clearCart(); // CartContext handles both authenticated and guest users
         setOrderData(order);
         setOrderComplete(true);
       } else {
@@ -1074,37 +1111,28 @@ export default function Checkout() {
   };
 
   const handleMakePayment = async () => {
-    if (!isAuthenticated) {
-      localStorage.setItem('returnUrl', '/checkout');
-      window.location.href = '/login';
-      return;
-    }
-
     if (deliveryFee === 0) {
       alert('Please select a delivery state');
       return;
     }
 
     setLoading(true);
-    
+
     try {
-      // Create or use existing address
-      let addressId = selectedAddressId;
-      
-      if (!addressId && showNewAddressForm) {
+      // For authenticated users with existing address
+      if (isAuthenticated && selectedAddressId && !showNewAddressForm) {
+        // Use existing address - createOrder will handle it
+      }
+      // For authenticated users creating new address
+      else if (isAuthenticated && showNewAddressForm) {
         const newAddress = await createAddress({
           type: 'home',
           ...shippingInfo,
           isDefault: addresses.length === 0
         });
-        addressId = newAddress.id;
+        setSelectedAddressId(newAddress.id);
       }
-
-      if (!addressId) {
-        alert('Please select or create a shipping address');
-        setLoading(false);
-        return;
-      }
+      // For guest users, form validation will be checked by isFormValid()
 
       // Create order FIRST
       const order = await createOrder();
@@ -1118,9 +1146,9 @@ export default function Checkout() {
       }
 
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      
+
       const handler = window.PaystackPop.setup({
-        key: 'pk_live_1633fba5489bdc4774c767223f0e1c18d2e277f8', 
+        key: 'pk_live_1633fba5489bdc4774c767223f0e1c18d2e277f8',
         email: user?.email || shippingInfo.email,
         amount: Math.round(total * 100),
         currency: 'NGN',
@@ -1129,7 +1157,7 @@ export default function Checkout() {
           order_id: order.id,
           order_number: order.orderNumber,
           customer_name: `${user?.firstName || shippingInfo.firstName} ${user?.lastName || shippingInfo.lastName}`,
-          delivery_state: selectedDeliveryState,
+          delivery_state: selectedDeliveryState || shippingInfo.state,
           delivery_fee: deliveryFee
         },
         callback: function(response) {
@@ -1160,60 +1188,25 @@ export default function Checkout() {
   const total = discountedSubtotal + deliveryFee;
 
   const isFormValid = () => {
-    if (selectedAddressId) return true;
-    if (!showNewAddressForm) return false;
+    // For authenticated users with selected address
+    if (isAuthenticated && selectedAddressId && !showNewAddressForm) {
+      return true;
+    }
 
-    return shippingInfo.firstName &&
-      shippingInfo.lastName &&
-      shippingInfo.email &&
-      shippingInfo.phone &&
-      shippingInfo.streetAddress &&
-      shippingInfo.city &&
-      shippingInfo.state &&
-      shippingInfo.zipCode;
+    // For both guest users and authenticated users filling new address form
+    if (showNewAddressForm || !isAuthenticated) {
+      return shippingInfo.firstName &&
+        shippingInfo.lastName &&
+        shippingInfo.email &&
+        shippingInfo.phone &&
+        shippingInfo.streetAddress &&
+        shippingInfo.city &&
+        shippingInfo.state &&
+        shippingInfo.zipCode;
+    }
+
+    return false;
   };
-
-  // Show login prompt if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-white py-8 px-6 shadow-lg rounded-2xl border border-gray-100">
-            <User className="h-16 w-16 text-sky-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Sign In Required
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Please sign in to your account to proceed with checkout.
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  localStorage.setItem('returnUrl', '/checkout');
-                  window.location.href = '/login';
-                }}
-                className="w-full bg-sky-500 text-white py-3 rounded-lg font-semibold hover:bg-sky-600 transition-colors"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => window.location.href = '/register'}
-                className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Create Account
-              </button>
-              <button
-                onClick={() => window.location.href = '/cart'}
-                className="w-full text-gray-500 py-2 text-sm hover:text-gray-700 transition-colors"
-              >
-                Back to Cart
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (orderComplete) {
     return (
@@ -1224,8 +1217,14 @@ export default function Checkout() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Order Confirmed!
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-2">
               Thank you for your order! Your order number is <strong>{orderData?.orderNumber}</strong>.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              {isAuthenticated
+                ? 'We have sent a confirmation email to your registered email address.'
+                : `We have sent a confirmation email to ${shippingInfo.email}.`
+              }
             </p>
             <div className="space-y-3">
               <button
@@ -1234,12 +1233,24 @@ export default function Checkout() {
               >
                 Continue Shopping
               </button>
-              <button
-                onClick={() => window.location.href = '/profile'}
-                className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-              >
-                View Orders
-              </button>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => window.location.href = '/profile'}
+                  className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  View Orders
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    localStorage.setItem('returnUrl', '/profile');
+                    window.location.href = '/register';
+                  }}
+                  className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Create Account to Track Order
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1282,6 +1293,37 @@ export default function Checkout() {
           <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
           <p className="text-gray-600 mt-2">Complete your order</p>
         </div>
+
+        {/* Guest Checkout Info Banner */}
+        {!isAuthenticated && (
+          <div className="mb-6 bg-sky-50 border border-sky-200 rounded-xl p-4">
+            <div className="flex items-start space-x-3">
+              <ShieldCheck className="h-5 w-5 text-sky-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-sky-900">Guest Checkout</h3>
+                <p className="text-sm text-sky-700 mt-1">
+                  No account needed! Just enter your email and shipping address to complete your purchase.
+                </p>
+                <p className="text-xs text-sky-600 mt-2">
+                  Want to track your order later?{' '}
+                  <a
+                    href="/register"
+                    className="underline font-medium hover:text-sky-800"
+                  >
+                    Create an account
+                  </a>
+                  {' '}or{' '}
+                  <a
+                    href="/login"
+                    className="underline font-medium hover:text-sky-800"
+                  >
+                    sign in
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Shipping Information */}
@@ -1660,7 +1702,7 @@ export default function Checkout() {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Truck className="h-5 w-5 text-sky-500" />
-                    <span className="text-sm text-gray-600">Delivery across Nigeria</span>
+                    <span className="text-sm text-gray-600">24 - 72 hours Delivery across Nigeria</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <ShieldCheck className="h-5 w-5 text-sky-500" />

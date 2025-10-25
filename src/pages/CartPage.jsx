@@ -47,13 +47,8 @@ export default function CartPage() {
       return;
     }
 
-    if (!isLoggedIn) {
-      // Store current URL to return after login
-      localStorage.setItem('returnUrl', '/checkout');
-      window.location.href = '/login';
-    } else {
-      window.location.href = '/checkout';
-    }
+    // Allow both guest and authenticated users to proceed to checkout
+    window.location.href = '/checkout';
   };
 
   if (loading) {
@@ -79,7 +74,9 @@ export default function CartPage() {
           {!isLoggedIn && cartItems.length > 0 && (
             <div className="mt-4 bg-sky-50 border border-sky-200 rounded-lg p-4">
               <p className="text-sky-800 text-sm">
-                <strong>Guest Cart:</strong> Your items are saved locally. Sign in to save them to your account and checkout.
+                <strong>Guest Cart:</strong> Your items are saved locally. You can checkout without an account, or{' '}
+                <a href="/login" className="underline font-medium hover:text-sky-900">sign in</a>
+                {' '}to save them to your account.
               </p>
             </div>
           )}
@@ -204,12 +201,12 @@ export default function CartPage() {
                   </p>
                 </div>
 
-                <button 
+                <button
                   onClick={handleCheckout}
                   disabled={cartItems.length === 0}
                   className="w-full bg-sky-500 text-white py-4 rounded-lg font-semibold hover:bg-sky-600 transition-colors flex items-center justify-center space-x-2 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>{!isLoggedIn ? 'Sign In to Checkout' : 'Proceed to Checkout'}</span>
+                  <span>Proceed to Checkout</span>
                   <ArrowRight className="h-5 w-5" />
                 </button>
 
