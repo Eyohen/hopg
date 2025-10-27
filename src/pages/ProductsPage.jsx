@@ -1,18 +1,22 @@
 //pages/ProductsPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Search, Menu, Star, Heart, Filter, Grid, List, ChevronDown, Plus } from 'lucide-react';
 import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
 
 export default function ProductsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({});
+  const isInitialMount = useRef(true);
 
   // Use CartContext instead of local cart management
   const { cartCount, addToCart } = useCart();
@@ -21,27 +25,59 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter State
-  const [filters, setFilters] = useState({
-    search: '',
-    category: '',
-    sortBy: 'createdAt',
-    sortOrder: 'DESC',
-    minPrice: '',
-    maxPrice: '',
-    brand: '',
-    inStock: false,
-    featured: false,
-    page: 1,
-    limit: 12
-  });
+  // Initialize filters with URL search parameter to avoid double-fetching
+  const getInitialFilters = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const searchQuery = searchParams.get('search');
 
+    return {
+      search: searchQuery || '',
+      category: '',
+      sortBy: 'createdAt',
+      sortOrder: 'DESC',
+      minPrice: '',
+      maxPrice: '',
+      brand: '',
+      inStock: false,
+      featured: false,
+      page: 1,
+      limit: 12
+    };
+  };
+
+  // Filter State - initialized with URL params
+  const [filters, setFilters] = useState(getInitialFilters());
+
+  // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
-    fetchProducts();
   }, []);
 
+  // Watch for URL changes and update filters accordingly
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const searchQuery = searchParams.get('search');
+    const urlSearch = searchQuery || '';
+    const currentSearch = filters.search || '';
+
+    // Update filters only if URL search differs from current filter
+    // This handles browser back/forward and direct URL navigation
+    if (urlSearch !== currentSearch) {
+      setFilters(prev => ({
+        ...prev,
+        search: urlSearch,
+        page: 1
+      }));
+    }
+  }, [location.search]);
+
+  // Fetch products whenever filters change
+  useEffect(() => {
+    // Mark that we've passed the initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    }
+
     fetchProducts();
   }, [filters]);
 
@@ -123,6 +159,14 @@ export default function ProductsPage() {
   };
 
   const updateFilter = (key, value) => {
+    // For search filter, update URL and let URL watcher handle filter update
+    if (key === 'search') {
+      const newUrl = value ? `/products?search=${encodeURIComponent(value)}` : '/products';
+      navigate(newUrl, { replace: true }); // Use replace to avoid cluttering history
+      return;
+    }
+
+    // For other filters, update directly
     setFilters(prev => ({
       ...prev,
       [key]: value,
@@ -144,6 +188,8 @@ export default function ProductsPage() {
       page: 1,
       limit: 12
     });
+    // Clear URL search parameter as well
+    navigate('/products', { replace: true });
   };
 
   const handlePageChange = (newPage) => {
@@ -225,6 +271,21 @@ export default function ProductsPage() {
                 >
                   Clear All
                 </button>
+              </div>
+
+              {/* Search Input */}
+              <div className="mb-6">
+                <h3 className="font-medium text-gray-900 mb-3">Search</h3>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search products or brands..."
+                    value={filters.search}
+                    onChange={(e) => updateFilter('search', e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  />
+                  <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                </div>
               </div>
 
               {/* Categories */}
@@ -334,10 +395,23 @@ export default function ProductsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">All Products</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {filters.search ? `Search Results for "${filters.search}"` : 'All Products'}
+                </h1>
                 <p className="text-gray-600">
                   Showing {products.length} of {pagination.total || 0} products
                 </p>
+                {filters.search && (
+                  <button
+                    onClick={() => {
+                      navigate('/products', { replace: true });
+                    }}
+                    className="text-sm text-sky-600 hover:text-sky-700 mt-1 flex items-center space-x-1"
+                  >
+                    <span>Clear search</span>
+                    <span>×</span>
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center space-x-4">
@@ -409,8 +483,31 @@ export default function ProductsPage() {
               </div>
             )}
 
+            {/* No Results State */}
+            {!loading && !error && products.length === 0 && (
+              <div className="text-center py-12">
+                <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {filters.search ? `No products found for "${filters.search}"` : 'No products found'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {filters.search
+                    ? 'Try a different search term or clear your filters'
+                    : 'Check back later for new products'}
+                </p>
+                {filters.search && (
+                  <button
+                    onClick={clearFilters}
+                    className="bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-sky-600 transition-colors"
+                  >
+                    Clear Search
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Products Grid */}
-            {!loading && !error && (
+            {!loading && !error && products.length > 0 && (
               <>
                 {viewMode === 'grid' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
