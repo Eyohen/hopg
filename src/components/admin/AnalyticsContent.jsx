@@ -1,7 +1,10 @@
 //components/admin/AnalyticsContent.jsx
 
 import { useState, useEffect } from "react";
-import {BarChart3,TrendingUp,PieChart  } from 'lucide-react';
+import { TrendingUp, BarChart3 } from 'lucide-react';
+import { URL } from '../../url';
+import PieChart from './PieChart';
+import BarChart from './BarChart';
 
 export default function AnalyticsContent({ data, getFetchOptions }) {
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -27,11 +30,21 @@ export default function AnalyticsContent({ data, getFetchOptions }) {
     fetchAnalytics();
   }, [period]);
 
-  // Prepare pie chart data for revenue distribution
-  const revenueDistributionData = analyticsData?.revenueDistribution?.map(item => ({
-    label: item.product?.category?.name || 'Other',
-    value: item.revenue || 0
-  })) || [];
+  // Prepare pie chart data for revenue distribution by category
+  const revenueDistributionData = analyticsData?.revenueDistribution?.map(item => {
+    // Handle both possible data structures from backend
+    const categoryName = item.product?.category?.name || item['product.category.name'] || 'Uncategorized';
+    const revenue = parseFloat(item.revenue || 0);
+
+    return {
+      label: categoryName,
+      value: revenue
+    };
+  }).filter(item => item.value > 0) || [];
+
+  console.log('Analytics Data:', analyticsData);
+  console.log('Revenue Distribution Data:', revenueDistributionData);
+  console.log('Analytics for BarChart:', analyticsData?.analytics);
 
   return (
     <>
@@ -94,36 +107,71 @@ export default function AnalyticsContent({ data, getFetchOptions }) {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
         </div>
       ) : (
-        <div className="grid lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2 text-sky-500" />
-              Revenue Analytics ({period === '3months' ? '3 Months' : period === '6months' ? '6 Months' : period})
-            </h2>
-            <div className="space-y-4">
-              {analyticsData?.analytics?.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <>
+          {/* Summary Cards */}
+          {analyticsData && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {new Date(item.period).toLocaleDateString()}
+                    <p className="text-sm text-gray-600">Total Revenue</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      ₦{analyticsData.analytics?.reduce((sum, item) => sum + parseFloat(item.revenue || 0), 0).toLocaleString() || '0'}
                     </p>
-                    <p className="text-xs text-gray-600">{item.orders} orders</p>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    ₦{parseFloat(item.revenue || 0).toLocaleString()}
-                  </span>
+                  <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-green-600" />
+                  </div>
                 </div>
-              )) || (
-                  <p className="text-sm text-gray-500">No analytics data available for this period</p>
-                )}
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Total Orders</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {analyticsData.analytics?.reduce((sum, item) => sum + parseInt(item.orders || 0), 0).toLocaleString() || '0'}
+                    </p>
+                  </div>
+                  <div className="h-12 w-12 bg-sky-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="h-6 w-6 text-sky-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Average Order Value</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      ₦{analyticsData.analytics && analyticsData.analytics.length > 0
+                        ? (analyticsData.analytics.reduce((sum, item) => sum + parseFloat(item.revenue || 0), 0) /
+                          analyticsData.analytics.reduce((sum, item) => sum + parseInt(item.orders || 0), 0) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                        : '0'
+                      }
+                    </p>
+                  </div>
+                  <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-purple-600" />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Revenue Analytics Bar Chart */}
+          <BarChart
+            data={analyticsData?.analytics || []}
+            title={`Revenue Analytics (${period === '3months' ? '3 Months' : period === '6months' ? '6 Months' : period.charAt(0).toUpperCase() + period.slice(1)})`}
+            period={period}
+          />
 
           {/* Revenue Distribution Pie Chart */}
           {revenueDistributionData.length > 0 && (
-            <PieChart 
-              data={revenueDistributionData} 
-              title={`Revenue Distribution by Category (${period === '3months' ? '3 Months' : period === '6months' ? '6 Months' : period})`}
+            <PieChart
+              data={revenueDistributionData}
+              title={`Revenue Distribution by Category (${period === '3months' ? '3 Months' : period === '6months' ? '6 Months' : period.charAt(0).toUpperCase() + period.slice(1)})`}
             />
           )}
 
@@ -159,15 +207,16 @@ export default function AnalyticsContent({ data, getFetchOptions }) {
 
           {/* Order Status Distribution */}
           {data?.revenueByStatus && data.revenueByStatus.length > 0 && (
-            <PieChart 
+            <PieChart
               data={data.revenueByStatus.map(item => ({
                 label: item.status.charAt(0).toUpperCase() + item.status.slice(1),
                 value: item.revenue || 0
-              }))} 
+              }))}
               title="Revenue by Order Status"
             />
           )}
         </div>
+        </>
       )}
     </>
   );

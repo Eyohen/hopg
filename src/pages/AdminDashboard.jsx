@@ -1501,13 +1501,26 @@ export default function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`${URL}/api/orders?limit=50`, getFetchOptions());
+      // Use the correct admin endpoint
+      console.log('Fetching all orders from:', `${URL}/api/orders/admin/all?limit=50`);
+      const response = await fetch(`${URL}/api/orders/admin/all?limit=50`, getFetchOptions());
+      console.log('Admin orders response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('Orders data received:', data);
+        console.log('Number of orders:', data.orders?.length || 0);
         setOrders(data.orders || []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch orders:', response.status, errorData);
+        alert(`Failed to fetch orders: ${errorData.message || 'Unknown error'}`);
+        setOrders([]);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
+      alert('Error fetching orders. Check console for details.');
+      setOrders([]);
     }
   };
 
