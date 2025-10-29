@@ -251,7 +251,7 @@ export default function HomePage() {
                     <img
                       src={getCategoryImage(category)}
                       alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2 uppercase">{category.name}</h3>
