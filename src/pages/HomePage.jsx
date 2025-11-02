@@ -187,8 +187,7 @@ export default function HomePage() {
                   <span className="text-sky-500 block">PROTEIN GOODIES</span>
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Home of protein goodies is a hub for all healthy goodies.
-                  Fuel your fitness journey with premium supplements.
+                 HOME OF PROTEIN GOODIES IS YOUR NUMBER 1 HUB FOR ALL HEALTHY GOODIES. FUEL YOUR FITNESS JOURNEY WITH HIGH QUALITY PREMIUM GOODIES TODAY.
                 </p>
               </div>
 
