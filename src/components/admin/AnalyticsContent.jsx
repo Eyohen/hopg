@@ -11,6 +11,13 @@ export default function AnalyticsContent({ data, getFetchOptions }) {
   const [period, setPeriod] = useState('month');
   const [loading, setLoading] = useState(false);
 
+  const formatCurrency = (amount) => {
+    return parseFloat(amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
   const fetchAnalytics = async (selectedPeriod = period) => {
     try {
       setLoading(true);
@@ -116,7 +123,7 @@ export default function AnalyticsContent({ data, getFetchOptions }) {
                   <div>
                     <p className="text-sm text-gray-600">Total Revenue</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">
-                      ₦{analyticsData.analytics?.reduce((sum, item) => sum + parseFloat(item.revenue || 0), 0).toLocaleString() || '0'}
+                      ₦{formatCurrency(analyticsData.analytics?.reduce((sum, item) => sum + parseFloat(item.revenue || 0), 0))}
                     </p>
                   </div>
                   <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -145,9 +152,9 @@ export default function AnalyticsContent({ data, getFetchOptions }) {
                     <p className="text-sm text-gray-600">Average Order Value</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">
                       ₦{analyticsData.analytics && analyticsData.analytics.length > 0
-                        ? (analyticsData.analytics.reduce((sum, item) => sum + parseFloat(item.revenue || 0), 0) /
-                          analyticsData.analytics.reduce((sum, item) => sum + parseInt(item.orders || 0), 0) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
-                        : '0'
+                        ? formatCurrency(analyticsData.analytics.reduce((sum, item) => sum + parseFloat(item.revenue || 0), 0) /
+                          analyticsData.analytics.reduce((sum, item) => sum + parseInt(item.orders || 0), 0) || 0)
+                        : '0.00'
                       }
                     </p>
                   </div>
@@ -196,7 +203,7 @@ export default function AnalyticsContent({ data, getFetchOptions }) {
                     </div>
                   </div>
                   <span className="text-sm font-semibold text-gray-900">
-                    ₦{parseFloat(product.totalRevenue || 0).toLocaleString()}
+                    ₦{formatCurrency(product.totalRevenue)}
                   </span>
                 </div>
               )) || (

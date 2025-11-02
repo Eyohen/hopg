@@ -6,6 +6,13 @@ export default function CustomersContent({ users, fetchUsers, getFetchOptions })
   const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 10;
 
+  const formatCurrency = (amount) => {
+    return parseFloat(amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
   const filteredUsers = users.filter(user =>
     user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,7 +87,7 @@ export default function CustomersContent({ users, fetchUsers, getFetchOptions })
                 <td className="px-6 py-4 text-sm text-gray-600">{user.phone || 'N/A'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.totalOrders || 0}</td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  ₦{(user.totalSpent || 0).toLocaleString()}
+                  ₦{formatCurrency(user.totalSpent)}
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isAdmin ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'

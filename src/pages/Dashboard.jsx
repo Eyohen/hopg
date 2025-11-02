@@ -236,6 +236,13 @@ export default function AdminDashboard() {
 
   const { user } = useAuth();
 
+  const formatCurrency = (amount) => {
+    return parseFloat(amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, [timeframe]);
@@ -392,13 +399,13 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
             title="Total Sales"
-            value={`$${stats.totalSales?.toLocaleString() || 0}`}
+            value={`₦${formatCurrency(stats.totalSales)}`}
             change={12.5}
             bgColor="#C9CC3F"
           />
           <MetricCard
             title="Total Revenue"
-            value={`$${stats.totalSales?.toLocaleString() || 0}`}
+            value={`₦${formatCurrency(stats.totalSales)}`}
             change={8.2}
             bgColor="#B6D0E2"
           />
@@ -438,7 +445,7 @@ export default function AdminDashboard() {
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-600 mb-1">Total Revenue</p>
               <p className="text-2xl font-bold text-blue-800">
-                ${monthlyRevenue.reduce((sum, item) => sum + (item.revenue || 0), 0).toLocaleString()}
+                ₦{formatCurrency(monthlyRevenue.reduce((sum, item) => sum + (item.revenue || 0), 0))}
               </p>
             </div>
             
@@ -522,8 +529,8 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">${product.totalRevenue?.toFixed(2) || '0.00'}</p>
-                      <p className="text-sm text-gray-600">${product.product?.price || '0.00'} each</p>
+                      <p className="font-semibold text-gray-900">₦{formatCurrency(product.totalRevenue)}</p>
+                      <p className="text-sm text-gray-600">₦{formatCurrency(product.product?.price)} each</p>
                     </div>
                   </div>
                 ))
@@ -550,7 +557,7 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">${order.total}</p>
+                      <p className="font-semibold text-gray-900">₦{formatCurrency(order.total)}</p>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
                         {order.status}
                       </span>

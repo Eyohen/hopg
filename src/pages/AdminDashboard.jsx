@@ -1728,7 +1728,7 @@ export default function AdminDashboard() {
                     onClick={() => {
                       localStorage.removeItem('token');
                       localStorage.removeItem('user');
-                      window.location.href = '/admin-login';
+                      window.location.href = '/login';
                     }}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >

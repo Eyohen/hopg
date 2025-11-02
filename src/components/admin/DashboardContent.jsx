@@ -84,6 +84,13 @@ function PieChart({ data, title }) {
 }
 
 export default function DashboardContent({ data, loading, getStatusColor, products }) {
+  const formatCurrency = (amount) => {
+    return parseFloat(amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
   if (loading || !data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -199,7 +206,7 @@ export default function DashboardContent({ data, loading, getStatusColor, produc
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        ₦{parseFloat(order.total || 0).toFixed(2)}
+                        ₦{formatCurrency(order.total)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {new Date(order.createdAt).toLocaleDateString()}
@@ -236,7 +243,7 @@ export default function DashboardContent({ data, loading, getStatusColor, produc
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-gray-900">
-                    ₦{parseFloat(product.totalRevenue || 0).toFixed(2)}
+                    ₦{formatCurrency(product.totalRevenue)}
                   </span>
                 </div>
               )) || (
@@ -257,7 +264,7 @@ export default function DashboardContent({ data, loading, getStatusColor, produc
                     {new Date(month.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    ₦{parseFloat(month.revenue || 0).toFixed(2)}
+                    ₦{formatCurrency(month.revenue)}
                   </span>
                 </div>
               )) || (

@@ -3,12 +3,12 @@ import { Plus, Edit, Trash2, Eye, Search, Award, Package, Star } from 'lucide-re
 import { URL } from '../../url';
 import ProductModal from './ProductModal'; // Import the modal
 
-export default function ProductsContent({ 
+export default function ProductsContent({
   products = [], // Add default empty array
-  categories = [], 
-  brands = [], 
-  fetchProducts, 
-  getFetchOptions 
+  categories = [],
+  brands = [],
+  fetchProducts,
+  getFetchOptions
 }) {
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -18,6 +18,13 @@ export default function ProductsContent({
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const itemsPerPage = 5;
+
+  const formatCurrency = (amount) => {
+    return parseFloat(amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
 
   // Debug logs
   console.log('ProductsContent props:', { 
@@ -212,11 +219,11 @@ export default function ProductsContent({
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm font-medium text-gray-900">
-                    ₦{parseFloat(product.price || 0).toLocaleString()}
+                    ₦{formatCurrency(product.price)}
                   </div>
                   {product.originalPrice && product.originalPrice > product.price && (
                     <div className="text-xs text-gray-500 line-through">
-                      ₦{parseFloat(product.originalPrice).toLocaleString()}
+                      ₦{formatCurrency(product.originalPrice)}
                     </div>
                   )}
                 </td>
