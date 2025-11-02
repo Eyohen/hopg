@@ -1395,7 +1395,8 @@ import CustomersContent from '../components/admin/CustomersContent';
 import AnalyticsContent from '../components/admin/AnalyticsContent';
 import SettingsContent from '../components/admin/SettingsContent';
 import DiscountManagement from '../components/admin/DiscountManagement';
-import BrandsManagement from '../components/admin/BrandsManagement'; 
+import BrandsManagement from '../components/admin/BrandsManagement';
+import DeliveryFeeContent from '../components/admin/DeliveryFeeContent'; 
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -1407,7 +1408,8 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [categories, setCategories] = useState([]);
- const [brands, setBrands] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [deliveryFees, setDeliveryFees] = useState([]);
 
   const getAuthToken = () => {
     return localStorage.getItem('token');
@@ -1452,6 +1454,21 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error fetching brands:', error);
+    }
+  };
+
+  const fetchDeliveryFees = async () => {
+    try {
+      const response = await fetch(`${URL}/api/delivery-fees?limit=100`, getFetchOptions());
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Delivery Fees data:', data);
+        setDeliveryFees(data.deliveryFees || []);
+      } else {
+        console.error('Failed to fetch delivery fees:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching delivery fees:', error);
     }
   };
 
@@ -1580,7 +1597,7 @@ export default function AdminDashboard() {
         break;
       case 'products':
         fetchProducts();
-           fetchCategories();
+        fetchCategories();
         fetchBrands(); // Fetch brands when products tab is active
         break;
       case 'orders':
@@ -1589,8 +1606,11 @@ export default function AdminDashboard() {
       case 'customers':
         fetchUsers();
         break;
-          case 'brands':
+      case 'brands':
         fetchBrands();
+        break;
+      case 'deliveryFees':
+        fetchDeliveryFees();
         break;
       default:
         break;
@@ -1602,7 +1622,8 @@ export default function AdminDashboard() {
     { id: 'products', label: 'Products', icon: Package },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'customers', label: 'Customers', icon: Users },
-       { id: 'brands', label: 'Brands', icon: Award }, 
+    { id: 'brands', label: 'Brands', icon: Award },
+    { id: 'deliveryFees', label: 'Delivery Fee', icon: Truck },
     { id: 'discounts', label: 'Discounts', icon: Tag },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -1653,9 +1674,15 @@ export default function AdminDashboard() {
           fetchUsers={fetchUsers}
           {...commonProps}
         />;
-         case 'brands': // Add this case
+      case 'brands':
         return <BrandsManagement {...commonProps} />;
-      case 'discounts': // Add this case
+      case 'deliveryFees':
+        return <DeliveryFeeContent
+          deliveryFees={deliveryFees}
+          fetchDeliveryFees={fetchDeliveryFees}
+          {...commonProps}
+        />;
+      case 'discounts':
         return <DiscountManagement {...commonProps} />;
       case 'analytics':
         return <AnalyticsContent

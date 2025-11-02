@@ -47,19 +47,46 @@ export default function ProductsContent({
   const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
   const handleDeleteProduct = async (productId) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (!productId) {
+      alert('Invalid product ID');
+      return;
+    }
+
+    if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
       try {
         setLoading(true);
-        const response = await fetch(`${URL}/api/products/${productId}`, getFetchOptions('DELETE'));
+        console.log('Deleting product:', productId);
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to delete products');
+          return;
+        }
+
+        const response = await fetch(`${URL}/api/products/${productId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('Delete response status:', response.status);
+
         if (response.ok) {
+          const data = await response.json();
+          console.log('Delete successful:', data);
+          alert('Product deleted successfully!');
           await fetchProducts(); // Refresh products list
+
+          // If we deleted the last item on this page, go back one page
           if (paginatedProducts.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
           }
-          alert('Product deleted successfully');
         } else {
-          const error = await response.json();
-          alert('Failed to delete product: ' + (error.message || 'Unknown error'));
+          const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+          console.error('Delete failed:', error);
+          alert('Failed to delete product: ' + (error.message || `Server returned ${response.status}`));
         }
       } catch (error) {
         console.error('Error deleting product:', error);
