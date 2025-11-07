@@ -1,6 +1,6 @@
 //pages/ProductDetailPage.jsx
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Star, ArrowRight, Heart, Share2, Truck, Shield, RotateCcw, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, Search, Star, ArrowRight, MessageCircle, Share2, Truck, Shield, RotateCcw, Plus, Minus } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
@@ -112,33 +112,11 @@ export default function ProductDetails({ productId = '1' }) {
     }
   };
 
-  const addToWishlist = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login to add items to wishlist');
-        return;
-      }
-
-      const response = await fetch(`${URL}/api/wishlist`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ productId: product.id })
-      });
-
-      if (response.ok) {
-        alert('Product added to wishlist!');
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to add to wishlist');
-      }
-    } catch (err) {
-      console.error('Error adding to wishlist:', err);
-      alert('Failed to add product to wishlist. Please try again.');
-    }
+  const contactSeller = () => {
+    const phoneNumber = '2348134110122'; // WhatsApp number with country code
+    const message = `Hi, I'm interested in ${product.name}`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const submitReview = async (e) => {
@@ -422,12 +400,12 @@ export default function ProductDetails({ productId = '1' }) {
                 {product.stockQuantity > 0 ? `Add to Cart - ₦${Number(currentPrice * quantity).toLocaleString()}` : 'Out of Stock'}
               </button>
               <div className="flex space-x-3">
-                <button 
-                  onClick={addToWishlist}
-                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
+                <button
+                  onClick={contactSeller}
+                  className="flex-1 border border-green-500 bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"
                 >
-                  <Heart className="h-5 w-5" />
-                  <span>Add to Wishlist</span>
+                  <MessageCircle className="h-5 w-5" />
+                  <span>Contact Seller</span>
                 </button>
                 <button className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
                   <Share2 className="h-5 w-5" />

@@ -1,6 +1,6 @@
 //pages/ProductsPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Search, Menu, Star, Heart, Filter, Grid, List, ChevronDown, Plus } from 'lucide-react';
+import { ShoppingBag, Search, Menu, Star, MessageCircle, Filter, Grid, List, ChevronDown, Plus } from 'lucide-react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { URL } from '../url';
@@ -129,33 +129,11 @@ export default function ProductsPage() {
     }
   };
 
-  const addToWishlist = async (productId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login to add items to wishlist');
-        return;
-      }
-
-      const response = await fetch(`${URL}/api/wishlist`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ productId })
-      });
-
-      if (response.ok) {
-        alert('Product added to wishlist!');
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Failed to add to wishlist');
-      }
-    } catch (err) {
-      console.error('Error adding to wishlist:', err);
-      alert('Failed to add product to wishlist. Please try again.');
-    }
+  const contactSeller = (product) => {
+    const phoneNumber = '2348134110122'; // WhatsApp number with country code
+    const message = `Hi, I'm interested in ${product.name}`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const updateFilter = (key, value) => {
@@ -528,10 +506,10 @@ export default function ProductsPage() {
                             </div>
                           )}
                           <button
-                            onClick={() => addToWishlist(product.id)}
-                            className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+                            onClick={() => contactSeller(product)}
+                            className="absolute top-3 right-3 p-2 bg-green-500 rounded-full shadow-md hover:bg-green-600 transition-colors opacity-0 group-hover:opacity-100"
                           >
-                            <Heart className="h-4 w-4 text-gray-600" />
+                            <MessageCircle className="h-4 w-4 text-white" />
                           </button>
                           {product.stockQuantity === 0 && (
                             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
