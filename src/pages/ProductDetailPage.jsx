@@ -1,6 +1,6 @@
 //pages/ProductDetailPage.jsx
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Star, ArrowRight, MessageCircle, Share2, Truck, Shield, RotateCcw, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, Search, Star, ArrowRight, MessageCircle, Share2, Truck, Shield, RotateCcw, Plus, Minus, Phone, Mail, X } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +27,7 @@ export default function ProductDetails({ productId = '1' }) {
   const [activeTab, setActiveTab] = useState('description');
   const [reviewsPage, setReviewsPage] = useState(1);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
   const [reviewForm, setReviewForm] = useState({
     rating: 5,
     title: '',
@@ -113,10 +114,27 @@ export default function ProductDetails({ productId = '1' }) {
   };
 
   const contactSeller = () => {
-    const phoneNumber = '2348134110122'; // WhatsApp number with country code
+    setShowContactModal(true);
+  };
+
+  const handleWhatsApp = () => {
+    const phoneNumber = '2348134110122';
     const message = `Hi, I'm interested in ${product.name}`;
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+    setShowContactModal(false);
+  };
+
+  const handlePhone = () => {
+    window.location.href = 'tel:08134110122';
+    setShowContactModal(false);
+  };
+
+  const handleEmail = () => {
+    const subject = `Inquiry about ${product.name}`;
+    const body = `Hi, I'm interested in ${product.name}`;
+    window.location.href = `mailto:Homeofproteingoodie@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setShowContactModal(false);
   };
 
   const submitReview = async (e) => {
@@ -794,6 +812,66 @@ export default function ProductDetails({ productId = '1' }) {
           </div>
         )}
       </div>
+
+      {/* Contact Seller Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setShowContactModal(false)}>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Contact Seller</h3>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-6">Choose your preferred contact method:</p>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleWhatsApp}
+                className="w-full flex items-center space-x-4 p-4 border-2 border-green-500 bg-green-50 hover:bg-green-100 rounded-xl transition-colors group"
+              >
+                <div className="p-3 bg-green-500 rounded-full">
+                  <MessageCircle className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-semibold text-gray-900">WhatsApp</div>
+                  <div className="text-sm text-gray-600">08134110122</div>
+                </div>
+              </button>
+
+              <button
+                onClick={handlePhone}
+                className="w-full flex items-center space-x-4 p-4 border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors group"
+              >
+                <div className="p-3 bg-blue-500 rounded-full">
+                  <Phone className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-semibold text-gray-900">Phone Call</div>
+                  <div className="text-sm text-gray-600">08134110122</div>
+                </div>
+              </button>
+
+              <button
+                onClick={handleEmail}
+                className="w-full flex items-center space-x-4 p-4 border-2 border-purple-500 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors group"
+              >
+                <div className="p-3 bg-purple-500 rounded-full">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-semibold text-gray-900">Email</div>
+                  <div className="text-sm text-gray-600">Homeofproteingoodie@gmail.com</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
