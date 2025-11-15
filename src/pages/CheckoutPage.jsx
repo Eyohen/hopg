@@ -224,6 +224,8 @@ export default function Checkout() {
         selectedSize: item.selectedSize
       }));
 
+      console.log('Order items:', orderItems);
+
       // Build order payload based on authentication status
       const orderPayload = {
         items: orderItems,
@@ -234,6 +236,7 @@ export default function Checkout() {
       // For authenticated users with saved address
       if (isAuthenticated && selectedAddressId) {
         orderPayload.shippingAddressId = selectedAddressId;
+        console.log('Using shipping address ID:', selectedAddressId);
       } else {
         // For guest users or authenticated users entering new address
         orderPayload.guestShippingInfo = {
@@ -247,6 +250,7 @@ export default function Checkout() {
           zipCode: shippingInfo.zipCode,
           country: shippingInfo.country
         };
+        console.log('Using guest shipping info:', orderPayload.guestShippingInfo);
       }
 
       const headers = {
@@ -258,18 +262,24 @@ export default function Checkout() {
         headers.Authorization = `Bearer ${token}`;
       }
 
+      console.log('Sending order request to:', `${URL}/api/orders`);
+      console.log('Order payload:', JSON.stringify(orderPayload, null, 2));
+
       const response = await fetch(`${URL}/api/orders`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(orderPayload)
       });
 
+      console.log('Order response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('Order created:', data.order);
         return data.order;
       } else {
         const errorData = await response.json();
-        console.log('Order creation error:', errorData);
+        console.error('Order creation error response:', errorData);
         throw new Error(errorData.message || 'Failed to create order');
       }
     } catch (err) {
@@ -328,37 +338,58 @@ export default function Checkout() {
     setLoading(true);
 
     try {
+      console.log('Starting payment process...');
+
       // For authenticated users with existing address
       if (isAuthenticated && selectedAddressId && !showNewAddressForm) {
-        // Use existing address - createOrder will handle it
+        console.log('Using existing address:', selectedAddressId);
       }
       // For authenticated users creating new address
       else if (isAuthenticated && showNewAddressForm) {
+        console.log('Creating new address...');
         const newAddress = await createAddress({
           type: 'home',
           ...shippingInfo,
           isDefault: addresses.length === 0
         });
         setSelectedAddressId(newAddress.id);
+        console.log('New address created:', newAddress.id);
       }
-      // For guest users, form validation will be checked by isFormValid()
 
       // Create order FIRST
+      console.log('Creating order...');
       const order = await createOrder();
+      console.log('Order created successfully:', order);
       setOrderData(order);
 
       // Initialize Paystack payment
       if (!window.PaystackPop) {
+        console.error('PaystackPop not found on window object');
         alert('Paystack is not loaded. Please refresh the page and try again.');
         setLoading(false);
         return;
       }
 
+      const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+      if (!paystackKey) {
+        console.error('Paystack public key not configured');
+        alert('Payment system not configured. Please contact support.');
+        setLoading(false);
+        return;
+      }
+
       const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const paymentEmail = user?.email || shippingInfo.email;
+
+      console.log('Initializing Paystack with:', {
+        email: paymentEmail,
+        amount: Math.round(total * 100),
+        orderNumber: order.orderNumber
+      });
 
       const handler = window.PaystackPop.setup({
-        key: 'pk_live_1633fba5489bdc4774c767223f0e1c18d2e277f8',
-        email: user?.email || shippingInfo.email,
+        key: paystackKey,
+        email: paymentEmail,
         amount: Math.round(total * 100),
         currency: 'NGN',
         ref: `${order.orderNumber}-${Date.now()}`,
@@ -370,15 +401,22 @@ export default function Checkout() {
           delivery_fee: deliveryFee
         },
         callback: function(response) {
+          console.log('Payment successful:', response);
           handlePaystackSuccess(response, order);
         },
         onClose: handlePaystackClose
       });
 
+      console.log('Opening Paystack modal...');
       handler.openIframe();
     } catch (error) {
       console.error('Payment initialization failed:', error);
-      alert('Failed to initialize payment. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
+      alert(`Failed to initialize payment: ${error.message}. Please check console for details.`);
     } finally {
       setLoading(false);
     }
