@@ -11,6 +11,7 @@ export default function DiscountManagement({ getFetchOptions }) {
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState('all');
@@ -18,12 +19,14 @@ export default function DiscountManagement({ getFetchOptions }) {
   // Form states
   const [quickDiscountData, setQuickDiscountData] = useState({
     percentage: 10,
+    code: '',
     name: '',
     description: '',
     validUntil: ''
   });
 
   const [discountForm, setDiscountForm] = useState({
+    code: '',
     name: '',
     description: '',
     type: 'percentage',
@@ -66,7 +69,7 @@ export default function DiscountManagement({ getFetchOptions }) {
         const data = await response.json();
         setDiscounts([data.discount, ...discounts]);
         setShowQuickCreate(false);
-        setQuickDiscountData({ percentage: 10, name: '', description: '', validUntil: '' });
+        setQuickDiscountData({ percentage: 10, code: '', name: '', description: '', validUntil: '' });
         alert('Quick discount created successfully!');
       } else {
         const error = await response.json();
@@ -75,6 +78,86 @@ export default function DiscountManagement({ getFetchOptions }) {
     } catch (error) {
       console.error('Error creating quick discount:', error);
       alert('Failed to create discount');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDiscount = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${URL}/api/discounts`, {
+        ...getFetchOptions('POST'),
+        body: JSON.stringify(discountForm)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDiscounts([data.discount, ...discounts]);
+        setShowCreateModal(false);
+        setDiscountForm({
+          code: '',
+          name: '',
+          description: '',
+          type: 'percentage',
+          value: '',
+          minOrderAmount: '',
+          maxDiscountAmount: '',
+          usageLimit: '',
+          userUsageLimit: 1,
+          validUntil: ''
+        });
+        alert('Discount created successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to create discount');
+      }
+    } catch (error) {
+      console.error('Error creating discount:', error);
+      alert('Failed to create discount');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openEditModal = (discount) => {
+    setSelectedDiscount(discount);
+    setDiscountForm({
+      code: discount.code,
+      name: discount.name,
+      description: discount.description || '',
+      type: discount.type,
+      value: discount.value,
+      minOrderAmount: discount.minOrderAmount,
+      maxDiscountAmount: discount.maxDiscountAmount || '',
+      usageLimit: discount.usageLimit || '',
+      userUsageLimit: discount.userUsageLimit,
+      validUntil: discount.validUntil ? discount.validUntil.slice(0, 16) : ''
+    });
+    setShowEditModal(true);
+  };
+
+  const updateDiscount = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${URL}/api/discounts/${selectedDiscount.id}`, {
+        ...getFetchOptions('PUT'),
+        body: JSON.stringify(discountForm)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDiscounts(discounts.map(d => d.id === selectedDiscount.id ? data.discount : d));
+        setShowEditModal(false);
+        setSelectedDiscount(null);
+        alert('Discount updated successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to update discount');
+      }
+    } catch (error) {
+      console.error('Error updating discount:', error);
+      alert('Failed to update discount');
     } finally {
       setLoading(false);
     }
@@ -293,10 +376,17 @@ export default function DiscountManagement({ getFetchOptions }) {
 
                 <div className="flex items-center space-x-2 ml-4">
                   <button
+                    onClick={() => openEditModal(discount)}
+                    className="p-2 text-sky-500 hover:bg-sky-50 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={() => toggleDiscountStatus(discount.id)}
                     className={`p-2 rounded-lg transition-colors ${
-                      discount.isActive 
-                        ? 'text-green-600 hover:bg-green-50' 
+                      discount.isActive
+                        ? 'text-green-600 hover:bg-green-50'
                         : 'text-gray-400 hover:bg-gray-50'
                     }`}
                     title={discount.isActive ? 'Deactivate' : 'Activate'}
@@ -350,7 +440,7 @@ export default function DiscountManagement({ getFetchOptions }) {
                     <button
                       key={percentage}
                       onClick={() => setQuickDiscountData({
-                        ...quickDiscountData, 
+                        ...quickDiscountData,
                         percentage,
                         name: `${percentage}% Off`,
                         description: `Get ${percentage}% off your order`
@@ -365,6 +455,21 @@ export default function DiscountManagement({ getFetchOptions }) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Custom Code (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={quickDiscountData.code}
+                  onChange={(e) => setQuickDiscountData({...quickDiscountData, code: e.target.value.toUpperCase()})}
+                  placeholder="e.g., PROTEIN25 (leave empty to auto-generate)"
+                  maxLength={20}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono uppercase"
+                />
+                <p className="text-xs text-gray-500 mt-1">4-20 characters, letters and numbers only</p>
               </div>
 
               <div>
@@ -406,6 +511,315 @@ export default function DiscountManagement({ getFetchOptions }) {
                 className="flex-1 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50"
               >
                 {loading ? 'Creating...' : 'Create Discount'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Discount Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 my-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Create Discount Code</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Custom Code (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={discountForm.code}
+                  onChange={(e) => setDiscountForm({...discountForm, code: e.target.value.toUpperCase()})}
+                  placeholder="e.g., PROTEIN25 (leave empty to auto-generate)"
+                  maxLength={20}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono uppercase"
+                />
+                <p className="text-xs text-gray-500 mt-1">4-20 characters, letters and numbers only</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  value={discountForm.name}
+                  onChange={(e) => setDiscountForm({...discountForm, name: e.target.value})}
+                  placeholder="e.g., Summer Sale"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={discountForm.description}
+                  onChange={(e) => setDiscountForm({...discountForm, description: e.target.value})}
+                  placeholder="Optional description"
+                  rows={3}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Discount Type *
+                  </label>
+                  <select
+                    value={discountForm.type}
+                    onChange={(e) => setDiscountForm({...discountForm, type: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed Amount</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Discount Value * {discountForm.type === 'percentage' ? '(%)' : '(₦)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={discountForm.value}
+                    onChange={(e) => setDiscountForm({...discountForm, value: e.target.value})}
+                    placeholder={discountForm.type === 'percentage' ? '10' : '1000'}
+                    required
+                    min="0"
+                    max={discountForm.type === 'percentage' ? '100' : undefined}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Min Order Amount (₦)
+                  </label>
+                  <input
+                    type="number"
+                    value={discountForm.minOrderAmount}
+                    onChange={(e) => setDiscountForm({...discountForm, minOrderAmount: e.target.value})}
+                    placeholder="0"
+                    min="0"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Max Discount Amount (₦)
+                  </label>
+                  <input
+                    type="number"
+                    value={discountForm.maxDiscountAmount}
+                    onChange={(e) => setDiscountForm({...discountForm, maxDiscountAmount: e.target.value})}
+                    placeholder="Optional"
+                    min="0"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Valid Until
+                </label>
+                <input
+                  type="datetime-local"
+                  value={discountForm.validUntil}
+                  onChange={(e) => setDiscountForm({...discountForm, validUntil: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createDiscount}
+                disabled={loading || !discountForm.name || !discountForm.value}
+                className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Creating...' : 'Create Discount'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Discount Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 my-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Edit Discount Code</h3>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedDiscount(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Discount Code *
+                </label>
+                <input
+                  type="text"
+                  value={discountForm.code}
+                  onChange={(e) => setDiscountForm({...discountForm, code: e.target.value.toUpperCase()})}
+                  placeholder="e.g., PROTEIN25"
+                  maxLength={20}
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono uppercase"
+                />
+                <p className="text-xs text-gray-500 mt-1">4-20 characters, letters and numbers only</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  value={discountForm.name}
+                  onChange={(e) => setDiscountForm({...discountForm, name: e.target.value})}
+                  placeholder="e.g., Summer Sale"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={discountForm.description}
+                  onChange={(e) => setDiscountForm({...discountForm, description: e.target.value})}
+                  placeholder="Optional description"
+                  rows={3}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Discount Type *
+                  </label>
+                  <select
+                    value={discountForm.type}
+                    onChange={(e) => setDiscountForm({...discountForm, type: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed Amount</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Discount Value * {discountForm.type === 'percentage' ? '(%)' : '(₦)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={discountForm.value}
+                    onChange={(e) => setDiscountForm({...discountForm, value: e.target.value})}
+                    placeholder={discountForm.type === 'percentage' ? '10' : '1000'}
+                    required
+                    min="0"
+                    max={discountForm.type === 'percentage' ? '100' : undefined}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Min Order Amount (₦)
+                  </label>
+                  <input
+                    type="number"
+                    value={discountForm.minOrderAmount}
+                    onChange={(e) => setDiscountForm({...discountForm, minOrderAmount: e.target.value})}
+                    placeholder="0"
+                    min="0"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Max Discount Amount (₦)
+                  </label>
+                  <input
+                    type="number"
+                    value={discountForm.maxDiscountAmount}
+                    onChange={(e) => setDiscountForm({...discountForm, maxDiscountAmount: e.target.value})}
+                    placeholder="Optional"
+                    min="0"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Valid Until
+                </label>
+                <input
+                  type="datetime-local"
+                  value={discountForm.validUntil}
+                  onChange={(e) => setDiscountForm({...discountForm, validUntil: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedDiscount(null);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={updateDiscount}
+                disabled={loading || !discountForm.name || !discountForm.value || !discountForm.code}
+                className="flex-1 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Updating...' : 'Update Discount'}
               </button>
             </div>
           </div>
