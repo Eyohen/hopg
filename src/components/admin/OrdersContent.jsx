@@ -292,39 +292,108 @@ export default function OrdersContent({ orders, getStatusColor, fetchOrders, get
                       </div>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center space-x-2">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          <span>{selectedOrder.user?.email || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-gray-400" />
                           <span>
-                            {selectedOrder.user
-                              ? `${selectedOrder.user.firstName} ${selectedOrder.user.lastName}`
+                            {orderDetails?.user
+                              ? `${orderDetails.user.firstName} ${orderDetails.user.lastName}`
+                              : orderDetails?.guestShippingInfo
+                              ? `${orderDetails.guestShippingInfo.firstName} ${orderDetails.guestShippingInfo.lastName}`
                               : 'Guest User'}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4 text-gray-400" />
+                          <span>{orderDetails?.user?.email || orderDetails?.guestEmail || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Phone className="h-4 w-4 text-gray-400" />
+                          <span>
+                            {orderDetails?.shippingAddress?.phone || orderDetails?.guestShippingInfo?.phone || 'N/A'}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Shipping Address */}
-                  {orderDetails.shippingAddress && (
+                  {/* Shipping Address - Support both registered and guest addresses */}
+                  {(orderDetails.shippingAddress || orderDetails.guestShippingInfo) && (
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center space-x-2 mb-3">
                         <MapPin className="h-5 w-5 text-gray-600" />
                         <h3 className="font-semibold text-gray-900">Shipping Address</h3>
                       </div>
                       <div className="text-sm space-y-1">
-                        <p className="font-medium">{orderDetails.shippingAddress.fullName || 'N/A'}</p>
-                        <p className="text-gray-600">{orderDetails.shippingAddress.street || 'N/A'}</p>
-                        <p className="text-gray-600">
-                          {orderDetails.shippingAddress.city}, {orderDetails.shippingAddress.state} {orderDetails.shippingAddress.postalCode}
-                        </p>
-                        <p className="text-gray-600">{orderDetails.shippingAddress.country || 'N/A'}</p>
-                        <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200">
-                          <Phone className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600">{orderDetails.shippingAddress.phoneNumber || 'N/A'}</span>
-                        </div>
+                        {orderDetails.shippingAddress ? (
+                          <>
+                            <p className="font-medium">
+                              {orderDetails.shippingAddress.firstName} {orderDetails.shippingAddress.lastName}
+                            </p>
+                            <p className="text-gray-600">{orderDetails.shippingAddress.streetAddress}</p>
+                            <p className="text-gray-600">
+                              {orderDetails.shippingAddress.city}, {orderDetails.shippingAddress.state} {orderDetails.shippingAddress.zipCode}
+                            </p>
+                            <p className="text-gray-600">{orderDetails.shippingAddress.country}</p>
+                            <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200">
+                              <Phone className="h-4 w-4 text-gray-400" />
+                              <span className="text-gray-600">{orderDetails.shippingAddress.phone}</span>
+                            </div>
+                          </>
+                        ) : orderDetails.guestShippingInfo ? (
+                          <>
+                            <p className="font-medium">
+                              {orderDetails.guestShippingInfo.firstName} {orderDetails.guestShippingInfo.lastName}
+                            </p>
+                            <p className="text-gray-600">{orderDetails.guestShippingInfo.streetAddress}</p>
+                            <p className="text-gray-600">
+                              {orderDetails.guestShippingInfo.city}, {orderDetails.guestShippingInfo.state} {orderDetails.guestShippingInfo.zipCode}
+                            </p>
+                            <p className="text-gray-600">{orderDetails.guestShippingInfo.country || 'Nigeria'}</p>
+                            <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200">
+                              <Phone className="h-4 w-4 text-gray-400" />
+                              <span className="text-gray-600">{orderDetails.guestShippingInfo.phone}</span>
+                            </div>
+                            {orderDetails.guestEmail && (
+                              <div className="flex items-center space-x-2 mt-2">
+                                <Mail className="h-4 w-4 text-gray-400" />
+                                <span className="text-gray-600">{orderDetails.guestEmail}</span>
+                              </div>
+                            )}
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Delivery Tracking Information */}
+                  {(orderDetails.trackingNumber || orderDetails.shippedAt || orderDetails.deliveredAt) && (
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Package className="h-5 w-5 text-blue-600" />
+                        <h3 className="font-semibold text-gray-900">Delivery Information</h3>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        {orderDetails.trackingNumber && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Tracking Number:</span>
+                            <span className="font-medium font-mono">{orderDetails.trackingNumber}</span>
+                          </div>
+                        )}
+                        {orderDetails.shippedAt && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Shipped Date:</span>
+                            <span className="font-medium">
+                              {new Date(orderDetails.shippedAt).toLocaleDateString()} at {new Date(orderDetails.shippedAt).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        )}
+                        {orderDetails.deliveredAt && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Delivered Date:</span>
+                            <span className="font-medium text-green-600">
+                              {new Date(orderDetails.deliveredAt).toLocaleDateString()} at {new Date(orderDetails.deliveredAt).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -380,22 +449,16 @@ export default function OrdersContent({ orders, getStatusColor, fetchOrders, get
                         <span className="text-gray-600">Subtotal:</span>
                         <span>₦{formatCurrency(orderDetails.subtotal)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Shipping:</span>
-                        <span>₦{formatCurrency(orderDetails.shipping)}</span>
-                      </div>
-                      {orderDetails.tax > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Tax:</span>
-                          <span>₦{formatCurrency(orderDetails.tax)}</span>
-                        </div>
-                      )}
                       {orderDetails.discount && (
                         <div className="flex justify-between text-green-600">
                           <span>Discount ({orderDetails.discount.code}):</span>
                           <span>-₦{formatCurrency(orderDetails.discountAmount || 0)}</span>
                         </div>
                       )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Delivery Fee:</span>
+                        <span>₦{formatCurrency(orderDetails.shipping)}</span>
+                      </div>
                       <div className="flex justify-between pt-2 border-t border-gray-200 font-semibold text-base">
                         <span>Total:</span>
                         <span className="text-sky-600">₦{formatCurrency(orderDetails.total)}</span>
@@ -404,11 +467,11 @@ export default function OrdersContent({ orders, getStatusColor, fetchOrders, get
                         <div className="pt-2 mt-2 border-t border-gray-200">
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-600">Payment Method:</span>
-                            <span className="font-medium">{orderDetails.payment.paymentMethod}</span>
+                            <span className="font-medium capitalize">{orderDetails.payment.paymentMethod}</span>
                           </div>
                           <div className="flex justify-between text-xs mt-1">
                             <span className="text-gray-600">Payment Status:</span>
-                            <span className={`px-2 py-0.5 rounded-full font-medium ${
+                            <span className={`px-2 py-0.5 rounded-full font-medium capitalize ${
                               orderDetails.payment.status === 'completed'
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-yellow-100 text-yellow-800'
