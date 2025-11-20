@@ -117,25 +117,70 @@ export default function Checkout() {
 
   const fetchDeliveryFees = async () => {
     try {
-      const response = await fetch(`${URL}/api/delivery-fees?limit=50&sortBy=state&sortOrder=ASC`);
+      // Fetch only active delivery fees
+      const response = await fetch(`${URL}/api/delivery-fees?limit=100&isActive=true&sortBy=state&sortOrder=ASC`);
       if (response.ok) {
         const data = await response.json();
         setDeliveryFees(data.deliveryFees || []);
+        console.log('Fetched delivery fees:', data.deliveryFees?.length || 0);
+      } else {
+        console.error('Failed to fetch delivery fees:', response.status);
       }
     } catch (error) {
       console.error('Error fetching delivery fees:', error);
     }
   };
 
-  const handleDeliveryStateChange = (state) => {
+  const handleDeliveryStateChange = async (state) => {
     setSelectedDeliveryState(state);
-    const selectedFee = deliveryFees.find(fee => fee.state === state);
-    if (selectedFee) {
-      setDeliveryFee(parseFloat(selectedFee.fee));
-      setEstimatedDays(selectedFee.estimatedDays);
-    } else {
+
+    if (!state) {
       setDeliveryFee(0);
       setEstimatedDays(null);
+      return;
+    }
+
+    try {
+      // Use the backend endpoint for case-insensitive state lookup
+      const response = await fetch(`${URL}/api/delivery-fees/state/${encodeURIComponent(state)}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        const fee = parseFloat(data.deliveryFee.fee);
+        setDeliveryFee(fee);
+        setEstimatedDays(data.deliveryFee.estimatedDays);
+        console.log(`✅ Delivery fee for ${state}: ₦${fee}`);
+      } else {
+        console.error(`❌ No delivery fee found for state: "${state}"`);
+        // Fallback to local search (case-insensitive)
+        const selectedFee = deliveryFees.find(fee =>
+          fee.state.toLowerCase() === state.toLowerCase()
+        );
+
+        if (selectedFee) {
+          setDeliveryFee(parseFloat(selectedFee.fee));
+          setEstimatedDays(selectedFee.estimatedDays);
+          console.log(`✅ Found delivery fee locally: ₦${selectedFee.fee}`);
+        } else {
+          setDeliveryFee(0);
+          setEstimatedDays(null);
+          console.warn(`⚠️ No delivery fee available for "${state}" - setting to 0`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching delivery fee for state:', error);
+      // Fallback to local search
+      const selectedFee = deliveryFees.find(fee =>
+        fee.state.toLowerCase() === state.toLowerCase()
+      );
+
+      if (selectedFee) {
+        setDeliveryFee(parseFloat(selectedFee.fee));
+        setEstimatedDays(selectedFee.estimatedDays);
+      } else {
+        setDeliveryFee(0);
+        setEstimatedDays(null);
+      }
     }
   };
 

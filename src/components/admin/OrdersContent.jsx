@@ -445,24 +445,91 @@ export default function OrdersContent({ orders, getStatusColor, fetchOrders, get
                       <h3 className="font-semibold text-gray-900">Payment Summary</h3>
                     </div>
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Subtotal:</span>
-                        <span>₦{formatCurrency(orderDetails.subtotal)}</span>
-                      </div>
-                      {orderDetails.discount && (
-                        <div className="flex justify-between text-green-600">
-                          <span>Discount ({orderDetails.discount.code}):</span>
-                          <span>-₦{formatCurrency(orderDetails.discountAmount || 0)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Delivery Fee:</span>
-                        <span>₦{formatCurrency(orderDetails.shipping)}</span>
-                      </div>
-                      <div className="flex justify-between pt-2 border-t border-gray-200 font-semibold text-base">
-                        <span>Total:</span>
-                        <span className="text-sky-600">₦{formatCurrency(orderDetails.total)}</span>
-                      </div>
+                      {/* Calculate subtotal from items as fallback */}
+                      {(() => {
+                        const calculatedSubtotal = orderDetails.orderItems?.reduce((sum, item) => {
+                          return sum + parseFloat(item.subtotal || 0);
+                        }, 0) || 0;
+                        const displaySubtotal = parseFloat(orderDetails.subtotal || 0) || calculatedSubtotal;
+                        const displayDiscount = parseFloat(orderDetails.discountAmount || 0);
+                        const storedShipping = parseFloat(orderDetails.shipping || 0);
+                        const orderTotal = parseFloat(orderDetails.total || 0);
+
+                        // Calculate actual delivery fee from total if shipping field is 0 but total > subtotal
+                        // This handles cases where delivery fee was charged but not stored in shipping field
+                        let displayShipping = storedShipping;
+                        if (storedShipping === 0 && orderTotal > 0) {
+                          // Actual delivery fee = Total - Subtotal + Discount
+                          const calculatedShipping = orderTotal - displaySubtotal + displayDiscount;
+                          if (calculatedShipping > 0) {
+                            displayShipping = calculatedShipping;
+                          }
+                        }
+
+                        const calculatedTotal = displaySubtotal - displayDiscount + displayShipping;
+
+                        return (
+                          <>
+                            {/* Items Breakdown */}
+                            <div className="bg-white rounded p-2 mb-2">
+                              <p className="text-xs font-semibold text-gray-700 mb-1">Items Breakdown:</p>
+                              {orderDetails.orderItems?.map((item, idx) => (
+                                <div key={idx} className="flex justify-between text-xs text-gray-600 py-0.5">
+                                  <span>{item.product?.name} (×{item.quantity})</span>
+                                  <span>₦{formatCurrency(item.subtotal)}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="flex justify-between font-medium">
+                              <span className="text-gray-700">Items Subtotal:</span>
+                              <span className="text-gray-900">₦{formatCurrency(displaySubtotal)}</span>
+                            </div>
+
+                            {displayDiscount > 0 && (
+                              <div className="flex justify-between text-green-600">
+                                <span>Discount {orderDetails.discount ? `(${orderDetails.discount.code})` : ''}:</span>
+                                <span>-₦{formatCurrency(displayDiscount)}</span>
+                              </div>
+                            )}
+
+                            <div className="flex justify-between">
+                              <span className="text-gray-700">Delivery Fee:</span>
+                              <span className="text-gray-900">
+                                ₦{formatCurrency(displayShipping)}
+                                {storedShipping === 0 && displayShipping > 0 && (
+                                  <span className="text-xs text-amber-600 ml-1">*</span>
+                                )}
+                              </span>
+                            </div>
+
+                            {orderDetails.deliveryFee && (
+                              <div className="text-xs text-gray-500 pl-4">
+                                <span>({orderDetails.deliveryFee.state} - {orderDetails.deliveryFee.zone || 'Standard'})</span>
+                              </div>
+                            )}
+
+                            {storedShipping === 0 && displayShipping > 0 && (
+                              <div className="text-xs text-amber-600 pl-4">
+                                <span>* Calculated from order total (not stored in shipping field)</span>
+                              </div>
+                            )}
+
+                            <div className="flex justify-between pt-2 border-t border-gray-300 font-semibold text-base">
+                              <span>Order Total:</span>
+                              <span className="text-sky-600">₦{formatCurrency(orderDetails.total || calculatedTotal)}</span>
+                            </div>
+
+                            {/* Show calculation verification for admin */}
+                            {Math.abs((orderDetails.total || 0) - calculatedTotal) > 0.01 && (
+                              <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded mt-2">
+                                ⚠ Calculated total: ₦{formatCurrency(calculatedTotal)}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+
                       {orderDetails.payment && (
                         <div className="pt-2 mt-2 border-t border-gray-200">
                           <div className="flex justify-between text-xs">
