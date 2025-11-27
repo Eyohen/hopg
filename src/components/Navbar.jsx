@@ -74,7 +74,7 @@ export default function Navbar() {
               <Search className="h-5 w-5 text-gray-600" />
             </button>
 
-            <div><button onClick={()=> navigate('/login')} className='bg-sky-500 text-white px-6 py-1 rounded'>Login</button></div>
+
 
             {/* Cart Button */}
             <button 
