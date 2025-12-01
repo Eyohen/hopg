@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Download, Eye, X, Package, MapPin, Phone, Mail, User, Calendar, CreditCard } from 'lucide-react';
+import { Search, Download, Eye, X, Package, MapPin, Phone, Mail, User, Calendar, CreditCard, FileText } from 'lucide-react';
 import { URL } from '../../url';
 
 export default function OrdersContent({ orders, getStatusColor, fetchOrders, getFetchOptions }) {
@@ -356,6 +356,17 @@ export default function OrdersContent({ orders, getStatusColor, fetchOrders, get
                               <div className="flex items-center space-x-2 mt-2">
                                 <Mail className="h-4 w-4 text-gray-400" />
                                 <span className="text-gray-600">{orderDetails.guestEmail}</span>
+                              </div>
+                            )}
+                            {orderDetails.guestShippingInfo.additionalInfo && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex items-start space-x-2">
+                                  <FileText className="h-4 w-4 text-amber-500 mt-0.5" />
+                                  <div>
+                                    <p className="text-xs font-medium text-amber-700">Additional Instructions:</p>
+                                    <p className="text-gray-600 text-sm mt-1">{orderDetails.guestShippingInfo.additionalInfo}</p>
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </>

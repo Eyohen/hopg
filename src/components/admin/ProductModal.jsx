@@ -23,6 +23,7 @@ export default function ProductModal({
     weight: '',
     sku: '',
     ingredients: '',
+    flavour: '',
     isFeatured: false,
     isActive: true
   });
@@ -45,6 +46,7 @@ export default function ProductModal({
         weight: product.weight || '',
         sku: product.sku || '',
         ingredients: product.ingredients || '',
+        flavour: product.flavour || '',
         isFeatured: product.isFeatured || false,
         isActive: product.isActive !== false
       });
@@ -64,6 +66,7 @@ export default function ProductModal({
         weight: '',
         sku: '',
         ingredients: '',
+        flavour: '',
         isFeatured: false,
         isActive: true
       });
@@ -310,21 +313,37 @@ export default function ProductModal({
               </div>
             </div>
 
-            {/* Weight */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Weight (kg)
-              </label>
-              <input
-                type="number"
-                name="weight"
-                min="0"
-                step="0.01"
-                value={formData.weight}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
-                placeholder="0.00"
-              />
+            {/* Weight and Flavour */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  name="weight"
+                  min="0"
+                  step="0.01"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Flavour
+                </label>
+                <input
+                  type="text"
+                  name="flavour"
+                  value={formData.flavour}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  placeholder="e.g. Chocolate, Vanilla, Strawberry"
+                />
+              </div>
             </div>
 
             {/* Product Image */}

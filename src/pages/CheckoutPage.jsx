@@ -36,7 +36,8 @@ export default function Checkout() {
     city: '',
     state: '',
     zipCode: '',
-    country: 'Nigeria'
+    country: 'Nigeria',
+    additionalInfo: ''
   });
 
   // Load Paystack script
@@ -293,7 +294,8 @@ export default function Checkout() {
           city: shippingInfo.city,
           state: shippingInfo.state,
           zipCode: shippingInfo.zipCode,
-          country: shippingInfo.country
+          country: shippingInfo.country,
+          additionalInfo: shippingInfo.additionalInfo
         };
         console.log('Using guest shipping info:', orderPayload.guestShippingInfo);
       }
@@ -810,6 +812,17 @@ export default function Checkout() {
                         <option value="Nigeria">Nigeria</option>
                       </select>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Additional Information</label>
+                    <textarea
+                      value={shippingInfo.additionalInfo}
+                      onChange={(e) => handleInputChange('additionalInfo', e.target.value)}
+                      rows={3}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="Any special delivery instructions, landmarks, or additional notes..."
+                    />
                   </div>
                 </div>
               )}
