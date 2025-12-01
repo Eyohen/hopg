@@ -1383,7 +1383,7 @@ import {
   TrendingUp, Settings, Bell, Search, Menu, X, ChevronDown,
   BarChart3, Calendar, AlertCircle, CheckCircle, Clock,
   Eye, Edit, Trash2, Plus, Filter, Download, ArrowUp,
-  ArrowDown, MoreVertical, Star, Truck, ArrowRight, Tag, Award
+  ArrowDown, MoreVertical, Star, Truck, ArrowRight, Tag, Award, Archive
 } from 'lucide-react';
 import { URL } from '../url';
 
@@ -1396,7 +1396,8 @@ import AnalyticsContent from '../components/admin/AnalyticsContent';
 import SettingsContent from '../components/admin/SettingsContent';
 import DiscountManagement from '../components/admin/DiscountManagement';
 import BrandsManagement from '../components/admin/BrandsManagement';
-import DeliveryFeeContent from '../components/admin/DeliveryFeeContent'; 
+import DeliveryFeeContent from '../components/admin/DeliveryFeeContent';
+import DumpOrdersContent from '../components/admin/DumpOrdersContent';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -1410,6 +1411,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [deliveryFees, setDeliveryFees] = useState([]);
+  const [dumpOrders, setDumpOrders] = useState([]);
 
   const getAuthToken = () => {
     return localStorage.getItem('token');
@@ -1518,9 +1520,9 @@ export default function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      // Use the correct admin endpoint
-      console.log('Fetching all orders from:', `${URL}/api/orders/admin/all?limit=50`);
-      const response = await fetch(`${URL}/api/orders/admin/all?limit=50`, getFetchOptions());
+      // Fetch only orders with completed/success payments
+      console.log('Fetching completed payment orders from:', `${URL}/api/orders/admin/all?limit=50&paymentStatus=success`);
+      const response = await fetch(`${URL}/api/orders/admin/all?limit=50&paymentStatus=success`, getFetchOptions());
       console.log('Admin orders response status:', response.status);
 
       if (response.ok) {
@@ -1538,6 +1540,27 @@ export default function AdminDashboard() {
       console.error('Error fetching orders:', error);
       alert('Error fetching orders. Check console for details.');
       setOrders([]);
+    }
+  };
+
+  const fetchDumpOrders = async () => {
+    try {
+      // Fetch orders with pending payments (incomplete transactions)
+      console.log('Fetching dump orders from:', `${URL}/api/orders/admin/all?limit=100&paymentStatus=pending`);
+      const response = await fetch(`${URL}/api/orders/admin/all?limit=100&paymentStatus=pending`, getFetchOptions());
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Dump orders data received:', data);
+        setDumpOrders(data.orders || []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch dump orders:', response.status, errorData);
+        setDumpOrders([]);
+      }
+    } catch (error) {
+      console.error('Error fetching dump orders:', error);
+      setDumpOrders([]);
     }
   };
 
@@ -1603,6 +1626,9 @@ export default function AdminDashboard() {
       case 'orders':
         fetchOrders();
         break;
+      case 'dump':
+        fetchDumpOrders();
+        break;
       case 'customers':
         fetchUsers();
         break;
@@ -1621,6 +1647,7 @@ export default function AdminDashboard() {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'dump', label: 'Dump', icon: Archive },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'brands', label: 'Brands', icon: Award },
     { id: 'deliveryFees', label: 'Delivery Fee', icon: Truck },
@@ -1666,6 +1693,12 @@ export default function AdminDashboard() {
         return <OrdersContent
           orders={orders}
           fetchOrders={fetchOrders}
+          {...commonProps}
+        />;
+      case 'dump':
+        return <DumpOrdersContent
+          orders={dumpOrders}
+          fetchOrders={fetchDumpOrders}
           {...commonProps}
         />;
       case 'customers':
